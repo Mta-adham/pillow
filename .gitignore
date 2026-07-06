@@ -13,7 +13,7 @@ summary.txt
 # Harness logs
 logs/
 
-# Local git metadata for task switching (vendored files are tracked above)
+# Vendored Pillow source (tracked); nested clone metadata is not
 project/.git/
 
 # Local Python environment
