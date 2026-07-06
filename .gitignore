@@ -1,0 +1,24 @@
+# Per-task eval workspaces (generated at run time)
+eval/
+
+# Cached HuggingFace instance payloads (benchmark defs are tracked)
+benchmarks/**/instance.json
+
+# Latest benchmark copy (regenerated each run)
+artemis_results.json
+artemis_results_robust.json
+tests_artemis_results.json
+summary.txt
+
+# Harness logs
+logs/
+
+# Local git metadata for task switching (vendored files are tracked above)
+project/.git/
+
+# Local Python environment
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
