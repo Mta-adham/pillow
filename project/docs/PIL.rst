@@ -4,97 +4,108 @@ PIL Package (autodoc of remaining modules)
 Reference for modules whose documentation has not yet been ported or written
 can be found here.
 
-:mod:`PIL` Module
------------------
-
-.. py:module:: PIL
-
-.. autoexception:: UnidentifiedImageError
-    :show-inheritance:
-
-:mod:`~PIL.BdfFontFile` Module
-------------------------------
+:mod:`BdfFontFile` Module
+-------------------------
 
 .. automodule:: PIL.BdfFontFile
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.ContainerIO` Module
-------------------------------
+:mod:`ContainerIO` Module
+-------------------------
 
 .. automodule:: PIL.ContainerIO
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.FontFile` Module
----------------------------
+:mod:`FontFile` Module
+----------------------
 
 .. automodule:: PIL.FontFile
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.GdImageFile` Module
-------------------------------
+:mod:`GdImageFile` Module
+-------------------------
 
 .. automodule:: PIL.GdImageFile
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.GimpGradientFile` Module
------------------------------------
+:mod:`GimpGradientFile` Module
+------------------------------
 
 .. automodule:: PIL.GimpGradientFile
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.GimpPaletteFile` Module
-----------------------------------
+:mod:`GimpPaletteFile` Module
+-----------------------------
 
 .. automodule:: PIL.GimpPaletteFile
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.ImageDraw2` Module
------------------------------
+.. intentionally skipped documenting this because it's not documented anywhere
+
+:mod:`ImageDraw2` Module
+------------------------
 
 .. automodule:: PIL.ImageDraw2
     :members:
-    :member-order: bysource
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.ImageMode` Module
-----------------------------
+.. intentionally skipped documenting this because it's deprecated
 
-.. automodule:: PIL.ImageMode
+:mod:`ImageShow` Module
+-----------------------
+
+.. automodule:: PIL.ImageShow
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.PaletteFile` Module
-------------------------------
+:mod:`ImageTransform` Module
+----------------------------
+
+.. automodule:: PIL.ImageTransform
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`JpegPresets` Module
+-------------------------
+
+.. automodule:: PIL.JpegPresets
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`PaletteFile` Module
+-------------------------
 
 .. automodule:: PIL.PaletteFile
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.PcfFontFile` Module
-------------------------------
+:mod:`PcfFontFile` Module
+-------------------------
 
 .. automodule:: PIL.PcfFontFile
     :members:
     :undoc-members:
     :show-inheritance:
 
-:class:`.PngImagePlugin.iTXt` Class
------------------------------------
+:class:`PngImagePlugin.iTXt` Class
+----------------------------------
 
 .. autoclass:: PIL.PngImagePlugin.iTXt
     :members:
@@ -107,8 +118,8 @@ can be found here.
         :param lang: language code
         :param tkey: UTF-8 version of the key name
 
-:class:`.PngImagePlugin.PngInfo` Class
---------------------------------------
+:class:`PngImagePlugin.PngInfo` Class
+-------------------------------------
 
 .. autoclass:: PIL.PngImagePlugin.PngInfo
     :members:
@@ -116,18 +127,27 @@ can be found here.
     :show-inheritance:
 
 
-:mod:`~PIL.TarIO` Module
-------------------------
+:mod:`TarIO` Module
+-------------------
 
 .. automodule:: PIL.TarIO
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.WalImageFile` Module
--------------------------------
+:mod:`WalImageFile` Module
+--------------------------
 
 .. automodule:: PIL.WalImageFile
     :members:
     :undoc-members:
     :show-inheritance:
+
+:mod:`_binary` Module
+---------------------
+
+.. automodule:: PIL._binary
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

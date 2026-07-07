@@ -1,347 +1,340 @@
 Plugin reference
 ================
 
-:mod:`~PIL.BmpImagePlugin` Module
----------------------------------
+:mod:`BmpImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.BmpImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.BufrStubImagePlugin` Module
---------------------------------------
+:mod:`BufrStubImagePlugin` Module
+---------------------------------
 
 .. automodule:: PIL.BufrStubImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.CurImagePlugin` Module
----------------------------------
+:mod:`CurImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.CurImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.DcxImagePlugin` Module
----------------------------------
+:mod:`DcxImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.DcxImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.DdsImagePlugin` Module
----------------------------------
-
-.. automodule:: PIL.DdsImagePlugin
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`~PIL.EpsImagePlugin` Module
----------------------------------
+:mod:`EpsImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.EpsImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.FitsImagePlugin` Module
---------------------------------------
+:mod:`FitsStubImagePlugin` Module
+---------------------------------
 
-.. automodule:: PIL.FitsImagePlugin
+.. automodule:: PIL.FitsStubImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.FliImagePlugin` Module
----------------------------------
+:mod:`FliImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.FliImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.FpxImagePlugin` Module
----------------------------------
+:mod:`FpxImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.FpxImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.GbrImagePlugin` Module
----------------------------------
+:mod:`GbrImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.GbrImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.GifImagePlugin` Module
----------------------------------
+:mod:`GifImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.GifImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.GribStubImagePlugin` Module
---------------------------------------
+:mod:`GribStubImagePlugin` Module
+---------------------------------
 
 .. automodule:: PIL.GribStubImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.Hdf5StubImagePlugin` Module
---------------------------------------
+:mod:`Hdf5StubImagePlugin` Module
+---------------------------------
 
 .. automodule:: PIL.Hdf5StubImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.IcnsImagePlugin` Module
-----------------------------------
+:mod:`IcnsImagePlugin` Module
+-----------------------------
 
 .. automodule:: PIL.IcnsImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.IcoImagePlugin` Module
----------------------------------
+:mod:`IcoImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.IcoImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.ImImagePlugin` Module
---------------------------------
+:mod:`ImImagePlugin` Module
+---------------------------
 
 .. automodule:: PIL.ImImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.ImtImagePlugin` Module
----------------------------------
+:mod:`ImtImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.ImtImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.IptcImagePlugin` Module
-----------------------------------
+:mod:`IptcImagePlugin` Module
+-----------------------------
 
 .. automodule:: PIL.IptcImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.JpegImagePlugin` Module
-----------------------------------
+:mod:`JpegImagePlugin` Module
+-----------------------------
 
 .. automodule:: PIL.JpegImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.Jpeg2KImagePlugin` Module
-------------------------------------
+:mod:`Jpeg2KImagePlugin` Module
+-------------------------------
 
 .. automodule:: PIL.Jpeg2KImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.McIdasImagePlugin` Module
-------------------------------------
+:mod:`McIdasImagePlugin` Module
+-------------------------------
 
 .. automodule:: PIL.McIdasImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.MicImagePlugin` Module
----------------------------------
+:mod:`MicImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.MicImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.MpegImagePlugin` Module
-----------------------------------
+:mod:`MpegImagePlugin` Module
+-----------------------------
 
 .. automodule:: PIL.MpegImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.MpoImagePlugin` Module
-----------------------------------
-
-.. automodule:: PIL.MpoImagePlugin
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`~PIL.MspImagePlugin` Module
----------------------------------
+:mod:`MspImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.MspImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.PalmImagePlugin` Module
-----------------------------------
+:mod:`PalmImagePlugin` Module
+-----------------------------
 
 .. automodule:: PIL.PalmImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.PcdImagePlugin` Module
----------------------------------
+:mod:`PcdImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.PcdImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.PcxImagePlugin` Module
----------------------------------
+:mod:`PcxImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.PcxImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.PdfImagePlugin` Module
----------------------------------
+:mod:`PdfImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.PdfImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.PixarImagePlugin` Module
------------------------------------
+:mod:`PixarImagePlugin` Module
+------------------------------
 
 .. automodule:: PIL.PixarImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.PngImagePlugin` Module
----------------------------------
+:mod:`PngImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.PngImagePlugin
-    :members: ChunkStream, PngImageFile, PngStream, getchunks, is_cid, putchunk,
-        Blend, Disposal, MAX_TEXT_CHUNK, MAX_TEXT_MEMORY
+    :members: ChunkStream, PngImageFile, PngStream, getchunks, is_cid, putchunk
+    :show-inheritance:
+.. autoclass:: PIL.PngImagePlugin.ChunkStream
+    :members:
     :undoc-members:
     :show-inheritance:
-    :member-order: groupwise
+.. autoclass:: PIL.PngImagePlugin.PngImageFile
+    :members:
+    :undoc-members:
+    :show-inheritance:
+.. autoclass:: PIL.PngImagePlugin.PngStream
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 
-:mod:`~PIL.PpmImagePlugin` Module
----------------------------------
+:mod:`PpmImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.PpmImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.PsdImagePlugin` Module
----------------------------------
+:mod:`PsdImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.PsdImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.SgiImagePlugin` Module
----------------------------------
+:mod:`SgiImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.SgiImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.SpiderImagePlugin` Module
-------------------------------------
+:mod:`SpiderImagePlugin` Module
+-------------------------------
 
 .. automodule:: PIL.SpiderImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.SunImagePlugin` Module
----------------------------------
+:mod:`SunImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.SunImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.TgaImagePlugin` Module
----------------------------------
+:mod:`TgaImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.TgaImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.TiffImagePlugin` Module
-----------------------------------
+:mod:`TiffImagePlugin` Module
+-----------------------------
 
 .. automodule:: PIL.TiffImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.WebPImagePlugin` Module
-----------------------------------
+:mod:`WebPImagePlugin` Module
+-----------------------------
 
 .. automodule:: PIL.WebPImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.WmfImagePlugin` Module
----------------------------------
+:mod:`WmfImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.WmfImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.XVThumbImagePlugin` Module
--------------------------------------
+:mod:`XVThumbImagePlugin` Module
+--------------------------------
 
 .. automodule:: PIL.XVThumbImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.XbmImagePlugin` Module
----------------------------------
+:mod:`XbmImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.XbmImagePlugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`~PIL.XpmImagePlugin` Module
----------------------------------
+:mod:`XpmImagePlugin` Module
+----------------------------
 
 .. automodule:: PIL.XpmImagePlugin
     :members:

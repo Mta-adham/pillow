@@ -1,11 +1,6 @@
-from __future__ import annotations
-
 import sys
-from pathlib import Path
 
-import pytest
-
-from PIL import Image
+from helper import unittest, PillowTestCase
 
 # This test is not run automatically.
 #
@@ -15,29 +10,34 @@ from PIL import Image
 # on any 32-bit machine, as well as any smallish things (like
 # Raspberry Pis).
 
-
-np = pytest.importorskip("numpy", reason="NumPy not installed")
+from PIL import Image
+try:
+    import numpy as np
+except ImportError:
+    raise unittest.SkipTest("numpy not installed")
 
 YDIM = 32769
 XDIM = 48000
 
 
-pytestmark = pytest.mark.skipif(sys.maxsize <= 2**32, reason="requires 64-bit system")
+@unittest.skipIf(sys.maxsize <= 2**32, "requires 64-bit system")
+class LargeMemoryNumpyTest(PillowTestCase):
+
+    def _write_png(self, xdim, ydim):
+        dtype = np.uint8
+        a = np.zeros((xdim, ydim), dtype=dtype)
+        f = self.tempfile('temp.png')
+        im = Image.fromarray(a, 'L')
+        im.save(f)
+
+    def test_large(self):
+        """ succeeded prepatch"""
+        self._write_png(XDIM, YDIM)
+
+    def test_2gpx(self):
+        """failed prepatch"""
+        self._write_png(XDIM, XDIM)
 
 
-def _write_png(tmp_path: Path, xdim: int, ydim: int) -> None:
-    dtype = np.uint8
-    a = np.zeros((xdim, ydim), dtype=dtype)
-    f = str(tmp_path / "temp.png")
-    im = Image.fromarray(a, "L")
-    im.save(f)
-
-
-def test_large(tmp_path: Path) -> None:
-    """succeeded prepatch"""
-    _write_png(tmp_path, XDIM, YDIM)
-
-
-def test_2gpx(tmp_path: Path) -> None:
-    """failed prepatch"""
-    _write_png(tmp_path, XDIM, XDIM)
+if __name__ == '__main__':
+    unittest.main()

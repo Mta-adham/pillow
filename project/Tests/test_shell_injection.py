@@ -1,59 +1,57 @@
-from __future__ import annotations
+from helper import unittest, PillowTestCase
+from helper import djpeg_available, cjpeg_available, netpbm_available
 
+import sys
 import shutil
-from io import BytesIO
-from pathlib import Path
-from typing import IO, Callable
 
-import pytest
-
-from PIL import GifImagePlugin, Image, JpegImagePlugin
-
-from .helper import cjpeg_available, djpeg_available, is_win32, netpbm_available
+from PIL import Image, JpegImagePlugin, GifImagePlugin
 
 TEST_JPG = "Tests/images/hopper.jpg"
 TEST_GIF = "Tests/images/hopper.gif"
 
-test_filenames = ("temp_';", 'temp_";', "temp_'\"|", "temp_'\"||", "temp_'\"&&")
+test_filenames = (
+    "temp_';",
+    "temp_\";",
+    "temp_'\"|",
+    "temp_'\"||",
+    "temp_'\"&&",
+)
 
 
-@pytest.mark.skipif(is_win32(), reason="Requires Unix or macOS")
-class TestShellInjection:
-    def assert_save_filename_check(
-        self,
-        tmp_path: Path,
-        src_img: Image.Image,
-        save_func: Callable[[Image.Image, IO[bytes], str | bytes], None],
-    ) -> None:
+@unittest.skipIf(sys.platform.startswith('win32'), "requires Unix or MacOS")
+class TestShellInjection(PillowTestCase):
+
+    def assert_save_filename_check(self, src_img, save_func):
         for filename in test_filenames:
-            dest_file = str(tmp_path / filename)
-            save_func(src_img, BytesIO(), dest_file)
+            dest_file = self.tempfile(filename)
+            save_func(src_img, 0, dest_file)
             # If file can't be opened, shell injection probably occurred
-            with Image.open(dest_file) as im:
-                im.load()
+            Image.open(dest_file).load()
 
-    @pytest.mark.skipif(not djpeg_available(), reason="djpeg not available")
-    def test_load_djpeg_filename(self, tmp_path: Path) -> None:
+    @unittest.skipUnless(djpeg_available(), "djpeg not available")
+    def test_load_djpeg_filename(self):
         for filename in test_filenames:
-            src_file = str(tmp_path / filename)
+            src_file = self.tempfile(filename)
             shutil.copy(TEST_JPG, src_file)
 
-            with Image.open(src_file) as im:
-                im.load_djpeg()
+            im = Image.open(src_file)
+            im.load_djpeg()
 
-    @pytest.mark.skipif(not cjpeg_available(), reason="cjpeg not available")
-    def test_save_cjpeg_filename(self, tmp_path: Path) -> None:
-        with Image.open(TEST_JPG) as im:
-            self.assert_save_filename_check(tmp_path, im, JpegImagePlugin._save_cjpeg)
+    @unittest.skipUnless(cjpeg_available(), "cjpeg not available")
+    def test_save_cjpeg_filename(self):
+        im = Image.open(TEST_JPG)
+        self.assert_save_filename_check(im, JpegImagePlugin._save_cjpeg)
 
-    @pytest.mark.skipif(not netpbm_available(), reason="Netpbm not available")
-    def test_save_netpbm_filename_bmp_mode(self, tmp_path: Path) -> None:
-        with Image.open(TEST_GIF) as im:
-            im = im.convert("RGB")
-            self.assert_save_filename_check(tmp_path, im, GifImagePlugin._save_netpbm)
+    @unittest.skipUnless(netpbm_available(), "netpbm not available")
+    def test_save_netpbm_filename_bmp_mode(self):
+        im = Image.open(TEST_GIF).convert("RGB")
+        self.assert_save_filename_check(im, GifImagePlugin._save_netpbm)
 
-    @pytest.mark.skipif(not netpbm_available(), reason="Netpbm not available")
-    def test_save_netpbm_filename_l_mode(self, tmp_path: Path) -> None:
-        with Image.open(TEST_GIF) as im:
-            im = im.convert("L")
-            self.assert_save_filename_check(tmp_path, im, GifImagePlugin._save_netpbm)
+    @unittest.skipUnless(netpbm_available(), "netpbm not available")
+    def test_save_netpbm_filename_l_mode(self):
+        im = Image.open(TEST_GIF).convert("L")
+        self.assert_save_filename_check(im, GifImagePlugin._save_netpbm)
+
+
+if __name__ == '__main__':
+    unittest.main()

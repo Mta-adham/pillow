@@ -1,30 +1,33 @@
-from __future__ import annotations
-
-from PIL import Image
-
-from .helper import hopper
+from helper import unittest, PillowTestCase, hopper
 
 
-def test_sanity() -> None:
-    data = hopper().getdata()
+class TestImageGetData(PillowTestCase):
 
-    len(data)
-    list(data)
+    def test_sanity(self):
 
-    assert data[0] == (20, 20, 70)
+        data = hopper().getdata()
+
+        len(data)
+        list(data)
+
+        self.assertEqual(data[0], (20, 20, 70))
+
+    def test_roundtrip(self):
+
+        def getdata(mode):
+            im = hopper(mode).resize((32, 30))
+            data = im.getdata()
+            return data[0], len(data), len(list(data))
+
+        self.assertEqual(getdata("1"), (0, 960, 960))
+        self.assertEqual(getdata("L"), (16, 960, 960))
+        self.assertEqual(getdata("I"), (16, 960, 960))
+        self.assertEqual(getdata("F"), (16.0, 960, 960))
+        self.assertEqual(getdata("RGB"), (((11, 13, 52), 960, 960)))
+        self.assertEqual(getdata("RGBA"), ((11, 13, 52, 255), 960, 960))
+        self.assertEqual(getdata("CMYK"), ((244, 242, 203, 0), 960, 960))
+        self.assertEqual(getdata("YCbCr"), ((16, 147, 123), 960, 960))
 
 
-def test_mode() -> None:
-    def getdata(mode: str) -> tuple[float | tuple[int, ...], int, int]:
-        im = hopper(mode).resize((32, 30), Image.Resampling.NEAREST)
-        data = im.getdata()
-        return data[0], len(data), len(list(data))
-
-    assert getdata("1") == (0, 960, 960)
-    assert getdata("L") == (17, 960, 960)
-    assert getdata("I") == (17, 960, 960)
-    assert getdata("F") == (17.0, 960, 960)
-    assert getdata("RGB") == ((11, 13, 52), 960, 960)
-    assert getdata("RGBA") == ((11, 13, 52, 255), 960, 960)
-    assert getdata("CMYK") == ((244, 242, 203, 0), 960, 960)
-    assert getdata("YCbCr") == ((16, 147, 123), 960, 960)
+if __name__ == '__main__':
+    unittest.main()

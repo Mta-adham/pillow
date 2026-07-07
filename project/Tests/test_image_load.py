@@ -1,53 +1,33 @@
-from __future__ import annotations
-
-import logging
-import os
-
-import pytest
+from helper import unittest, PillowTestCase, hopper
 
 from PIL import Image
 
-from .helper import hopper
+import os
 
 
-def test_sanity() -> None:
-    im = hopper()
-    px = im.load()
+class TestImageLoad(PillowTestCase):
 
-    assert px is not None
-    assert px[0, 0] == (20, 20, 70)
+    def test_sanity(self):
 
+        im = hopper()
 
-def test_close() -> None:
-    im = Image.open("Tests/images/hopper.gif")
-    im.close()
-    with pytest.raises(ValueError):
-        im.load()
-    with pytest.raises(ValueError):
-        im.getpixel((0, 0))
+        pix = im.load()
 
+        self.assertEqual(pix[0, 0], (20, 20, 70))
 
-def test_close_after_load(caplog: pytest.LogCaptureFixture) -> None:
-    im = Image.open("Tests/images/hopper.gif")
-    im.load()
-    with caplog.at_level(logging.DEBUG):
+    def test_close(self):
+        im = Image.open("Tests/images/hopper.gif")
         im.close()
-    assert len(caplog.records) == 0
+        self.assertRaises(ValueError, im.load)
+        self.assertRaises(ValueError, im.getpixel, (0, 0))
 
+    def test_contextmanager(self):
+        fn = None
+        with Image.open("Tests/images/hopper.gif") as im:
+            fn = im.fp.fileno()
+            os.fstat(fn)
 
-def test_contextmanager() -> None:
-    fn = None
-    with Image.open("Tests/images/hopper.gif") as im:
-        fn = im.fp.fileno()
-        os.fstat(fn)
+        self.assertRaises(OSError, os.fstat, fn)
 
-    with pytest.raises(OSError):
-        os.fstat(fn)
-
-
-def test_contextmanager_non_exclusive_fp() -> None:
-    with open("Tests/images/hopper.gif", "rb") as fp:
-        with Image.open(fp):
-            pass
-
-        assert not fp.closed
+if __name__ == '__main__':
+    unittest.main()

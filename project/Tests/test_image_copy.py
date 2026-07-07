@@ -1,53 +1,46 @@
-from __future__ import annotations
-
-import copy
-
-import pytest
+from helper import unittest, PillowTestCase, hopper
 
 from PIL import Image
 
-from .helper import hopper, skip_unless_feature
+import copy
 
 
-@pytest.mark.parametrize("mode", ("1", "P", "L", "RGB", "I", "F"))
-def test_copy(mode: str) -> None:
-    cropped_coordinates = (10, 10, 20, 20)
-    cropped_size = (10, 10)
+class TestImageCopy(PillowTestCase):
 
-    # Internal copy method
-    im = hopper(mode)
-    out = im.copy()
-    assert out.mode == im.mode
-    assert out.size == im.size
+    def test_copy(self):
+        croppedCoordinates = (10, 10, 20, 20)
+        croppedSize = (10, 10)
+        for mode in "1", "P", "L", "RGB", "I", "F":
+            # Internal copy method
+            im = hopper(mode)
+            out = im.copy()
+            self.assertEqual(out.mode, im.mode)
+            self.assertEqual(out.size, im.size)
 
-    # Python's copy method
-    im = hopper(mode)
-    out = copy.copy(im)
-    assert out.mode == im.mode
-    assert out.size == im.size
+            # Python's copy method
+            im = hopper(mode)
+            out = copy.copy(im)
+            self.assertEqual(out.mode, im.mode)
+            self.assertEqual(out.size, im.size)
 
-    # Internal copy method on a cropped image
-    im = hopper(mode)
-    out = im.crop(cropped_coordinates).copy()
-    assert out.mode == im.mode
-    assert out.size == cropped_size
+            # Internal copy method on a cropped image
+            im = hopper(mode)
+            out = im.crop(croppedCoordinates).copy()
+            self.assertEqual(out.mode, im.mode)
+            self.assertEqual(out.size, croppedSize)
 
-    # Python's copy method on a cropped image
-    im = hopper(mode)
-    out = copy.copy(im.crop(cropped_coordinates))
-    assert out.mode == im.mode
-    assert out.size == cropped_size
+            # Python's copy method on a cropped image
+            im = hopper(mode)
+            out = copy.copy(im.crop(croppedCoordinates))
+            self.assertEqual(out.mode, im.mode)
+            self.assertEqual(out.size, croppedSize)
+
+    def test_copy_zero(self):
+        im = Image.new('RGB', (0, 0))
+        out = im.copy()
+        self.assertEqual(out.mode, im.mode)
+        self.assertEqual(out.size, im.size)
 
 
-def test_copy_zero() -> None:
-    im = Image.new("RGB", (0, 0))
-    out = im.copy()
-    assert out.mode == im.mode
-    assert out.size == im.size
-
-
-@skip_unless_feature("libtiff")
-def test_deepcopy() -> None:
-    with Image.open("Tests/images/g4_orientation_5.tif") as im:
-        out = copy.deepcopy(im)
-    assert out.size == (590, 88)
+if __name__ == '__main__':
+    unittest.main()

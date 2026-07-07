@@ -8,120 +8,42 @@ Over 30 different file formats can be identified and read by the library.
 Write support is less extensive, but most common interchange and presentation
 formats are supported.
 
-The :py:meth:`~PIL.Image.open` function identifies files from their
+The :py:meth:`~PIL.Image.Image.open` function identifies files from their
 contents, not their names, but the :py:meth:`~PIL.Image.Image.save` method
 looks at the name to determine which format to use, unless the format is given
 explicitly.
 
-When an image is opened from a file, only that instance of the image is considered to
-have the format. Copies of the image will contain data loaded from the file, but not
-the file itself, meaning that it can no longer be considered to be in the original
-format. So if :py:meth:`~PIL.Image.Image.copy` is called on an image, or another method
-internally creates a copy of the image, then any methods or attributes specific to the
-format will no longer be present. The ``fp`` (file pointer) attribute will no longer be
-present, and the :py:attr:`~PIL.Image.Image.format` attribute will be ``None``.
-
 Fully supported formats
 -----------------------
 
-BLP
-^^^
-
-BLP is the Blizzard Mipmap Format, a texture format used in World of
-Warcraft. Pillow supports reading ``JPEG`` Compressed or raw ``BLP1``
-images, and all types of ``BLP2`` images.
-
-Saving
-~~~~~~
-
-Pillow supports writing BLP images. The :py:meth:`~PIL.Image.Image.save` method
-can take the following keyword arguments:
-
-**blp_version**
-    If present and set to "BLP1", images will be saved as BLP1. Otherwise, images
-    will be saved as BLP2.
+.. contents::
 
 BMP
 ^^^
 
-Pillow reads and writes Windows and OS/2 BMP files containing ``1``, ``L``, ``P``,
-or ``RGB`` data. 16-colour images are read as ``P`` images.
-Support for reading 8-bit run-length encoding was added in Pillow 9.1.0.
-Support for reading 4-bit run-length encoding was added in Pillow 9.3.0.
+PIL reads and writes Windows and OS/2 BMP files containing ``1``, ``L``, ``P``,
+or ``RGB`` data. 16-colour images are read as ``P`` images. Run-length encoding
+is not supported.
 
-Opening
-~~~~~~~
-
-The :py:meth:`~PIL.Image.open` method sets the following
+The :py:meth:`~PIL.Image.Image.open` method sets the following
 :py:attr:`~PIL.Image.Image.info` properties:
 
 **compression**
-    Set to 1 if the file is a 256-color run-length encoded image.
-    Set to 2 if the file is a 16-color run-length encoded image.
-
-DDS
-^^^
-
-DDS is a popular container texture format used in video games and natively supported
-by DirectX.
-
-DXT1 and DXT5 pixel formats can be read, only in ``RGBA`` mode.
-
-.. versionadded:: 3.4.0
-   DXT3 images can be read in ``RGB`` mode and DX10 images can be read in
-   ``RGB`` and ``RGBA`` mode.
-
-.. versionadded:: 6.0.0
-   Uncompressed ``RGBA`` images can be read.
-
-
-.. versionadded:: 8.3.0
-   BC5S images can be opened in ``RGB`` mode, and uncompressed ``RGB`` images
-   can be read. Uncompressed data can also be saved to image files.
-
-
-.. versionadded:: 9.3.0
-   ATI1 images can be opened in ``L`` mode and ATI2 images can be opened in
-   ``RGB`` mode.
-
-.. versionadded:: 9.4.0
-   Uncompressed ``L`` ("luminance") and ``LA`` images can be opened and saved.
-
-
-.. versionadded:: 10.1.0
-   BC5U can be read in ``RGB`` mode, and 8-bit color indexed images can be read
-   in ``P`` mode.
-
-
-DIB
-^^^
-
-Pillow reads and writes DIB files. DIB files are similar to BMP files, so see
-above for more information.
-
-    .. versionadded:: 6.0.0
+    Set to ``bmp_rle`` if the file is run-length encoded.
 
 EPS
 ^^^
 
-Pillow identifies EPS files containing image data, and can read files that
-contain embedded raster images (ImageData descriptors). If Ghostscript is
-available, other EPS files can be read as well. The EPS driver can also write
-EPS images. The EPS driver can read EPS images in ``L``, ``LAB``, ``RGB`` and
+PIL identifies EPS files containing image data, and can read files that contain
+embedded raster images (ImageData descriptors). If Ghostscript is available,
+other EPS files can be read as well. The EPS driver can also write EPS
+images. The EPS driver can read EPS images in ``L``, ``LAB``, ``RGB`` and
 ``CMYK`` mode, but Ghostscript may convert the images to ``RGB`` mode rather
 than leaving them in the original color space. The EPS driver can write images
 in ``L``, ``RGB`` and ``CMYK`` modes.
 
-Loading
-~~~~~~~
-
-To use Ghostscript, Pillow searches for the "gs" executable. On Windows, it
-also searches for "gswin32c" and "gswin64c". To customise this behaviour,
-``EpsImagePlugin.gs_binary = "gswin64"`` will set the name of the executable to
-use. ``EpsImagePlugin.gs_binary = False`` will prevent Ghostscript use.
-
 If Ghostscript is available, you can call the :py:meth:`~PIL.Image.Image.load`
-method with the following parameters to affect how Ghostscript renders the EPS.
+method with the following parameter to affect how Ghostscript renders the EPS
 
 **scale**
     Affects the scale of the resultant rasterized image. If the EPS suggests
@@ -130,58 +52,21 @@ method with the following parameters to affect how Ghostscript renders the EPS.
     relative position of the bounding box is maintained::
 
         im = Image.open(...)
-        im.size  # (100,100)
+        im.size #(100,100)
         im.load(scale=2)
-        im.size  # (200,200)
-
-**transparency**
-    If true, generates an RGBA image with a transparent background, instead of
-    the default behaviour of an RGB image with a white background.
-
+        im.size #(200,200)
 
 GIF
 ^^^
 
-Pillow reads GIF87a and GIF89a versions of the GIF file format. The library
-writes files in GIF87a by default, unless GIF89a features are used or GIF89a is
-already in use. Files are written with LZW encoding.
+PIL reads GIF87a and GIF89a versions of the GIF file format. The library writes
+run-length encoded files in GIF87a by default, unless GIF89a features
+are used or GIF89a is already in use.
 
-GIF files are initially read as grayscale (``L``) or palette mode (``P``)
-images. Seeking to later frames in a ``P`` image will change the image to
-``RGB`` (or ``RGBA`` if the first frame had transparency).
+Note that GIF files are always read as grayscale (``L``)
+or palette mode (``P``) images.
 
-``P`` mode images are changed to ``RGB`` because each frame of a GIF may contain
-its own individual palette of up to 256 colors. When a new frame is placed onto a
-previous frame, those colors may combine to exceed the ``P`` mode limit of 256
-colors. Instead, the image is converted to ``RGB`` handle this.
-
-If you would prefer the first ``P`` image frame to be ``RGB`` as well, so that
-every ``P`` frame is converted to ``RGB`` or ``RGBA`` mode, there is a setting
-available::
-
-    from PIL import GifImagePlugin
-    GifImagePlugin.LOADING_STRATEGY = GifImagePlugin.LoadingStrategy.RGB_ALWAYS
-
-GIF frames do not always contain individual palettes however. If there is only
-a global palette, then all of the colors can fit within ``P`` mode. If you would
-prefer the frames to be kept as ``P`` in that case, there is also a setting
-available::
-
-    from PIL import GifImagePlugin
-    GifImagePlugin.LOADING_STRATEGY = GifImagePlugin.LoadingStrategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY
-
-To restore the default behavior, where ``P`` mode images are only converted to
-``RGB`` or ``RGBA`` after the first frame::
-
-    from PIL import GifImagePlugin
-    GifImagePlugin.LOADING_STRATEGY = GifImagePlugin.LoadingStrategy.RGB_AFTER_FIRST
-
-.. _gif-opening:
-
-Opening
-~~~~~~~
-
-The :py:meth:`~PIL.Image.open` method sets the following
+The :py:meth:`~PIL.Image.Image.open` method sets the following
 :py:attr:`~PIL.Image.Image.info` properties:
 
 **background**
@@ -199,32 +84,22 @@ The :py:meth:`~PIL.Image.open` method sets the following
     of the GIF, in milliseconds.
 
 **loop**
-    May not be present. The number of times the GIF should loop. 0 means that
-    it will loop forever.
-
-**comment**
-    May not be present. A comment about the image. This is the last comment found
-    before the current frame's image.
-
-**extension**
-    May not be present. Contains application specific information.
+    May not be present. The number of times the GIF should loop.
 
 Reading sequences
 ~~~~~~~~~~~~~~~~~
 
-The GIF loader supports the :py:meth:`~PIL.Image.Image.seek` and
-:py:meth:`~PIL.Image.Image.tell` methods. You can combine these methods
-to seek to the next frame (``im.seek(im.tell() + 1)``).
+The GIF loader supports the :py:meth:`~file.seek` and :py:meth:`~file.tell`
+methods. You can seek to the next frame (``im.seek(im.tell() + 1)``), or rewind
+the file by seeking to the first frame. Random access is not supported.
 
-``im.seek()`` raises an :py:exc:`EOFError` if you try to seek after the last frame.
-
-.. _gif-saving:
+``im.seek()`` raises an ``EOFError`` if you try to seek after the last frame.
 
 Saving
 ~~~~~~
 
-When calling :py:meth:`~PIL.Image.Image.save` to write a GIF file, the
-following options are available::
+When calling :py:meth:`~PIL.Image.Image.save`, the following options
+are available::
 
     im.save(out, save_all=True, append_images=[im1, im2, ...])
 
@@ -235,28 +110,20 @@ following options are available::
 **append_images**
     A list of images to append as additional frames. Each of the
     images in the list can be single or multiframe images.
-    This is currently supported for GIF, PDF, PNG, TIFF, and WebP.
+    This is currently only supported for GIF, PDF and TIFF.
 
-    It is also supported for ICO and ICNS. If images are passed in of relevant
-    sizes, they will be used instead of scaling down the main image.
+**duration**
+    The display duration of each frame of the multiframe gif, in
+    milliseconds. Pass a single integer for a constant duration, or a
+    list or tuple to set the duration for each frame separately.
 
-**include_color_table**
-    Whether or not to include local color table.
+**loop**
+    Integer number of times the GIF should loop.
 
-**interlace**
-    Whether or not the image is interlaced. By default, it is, unless the image
-    is less than 16 pixels in width or height.
-
-**disposal**
-    Indicates the way in which the graphic is to be treated after being displayed.
-
-    * 0 - No disposal specified.
-    * 1 - Do not dispose.
-    * 2 - Restore to background color.
-    * 3 - Restore to previous content.
-
-     Pass a single integer for a constant disposal, or a list or tuple
-     to set the disposal for each frame separately.
+**optimize**
+    If present and true, attempt to compress the palette by
+    eliminating unused colors. This is only useful if the palette can
+    be compressed to the next smaller power of 2 elements.
 
 **palette**
     Use the specified palette for the saved image. The palette should
@@ -265,61 +132,31 @@ following options are available::
     the palette can be passed in as an
     :py:class:`PIL.ImagePalette.ImagePalette` object.
 
-**optimize**
-    Whether to attempt to compress the palette by eliminating unused colors
-    (this is only useful if the palette can be compressed to the next smaller
-    power of 2 elements) and whether to mark all pixels that are not new in the
-    next frame as transparent.
-
-    This is attempted by default, unless a palette is specified as an option or
-    as part of the first image's :py:attr:`~PIL.Image.Image.info` dictionary.
-
-Note that if the image you are saving comes from an existing GIF, it may have
-the following properties in its :py:attr:`~PIL.Image.Image.info` dictionary.
-For these options, if you do not pass them in, they will default to
-their :py:attr:`~PIL.Image.Image.info` values.
-
-**transparency**
-    Transparency color index.
-
-**duration**
-    The display duration of each frame of the multiframe gif, in
-    milliseconds. Pass a single integer for a constant duration, or a
-    list or tuple to set the duration for each frame separately.
-
-**loop**
-    Integer number of times the GIF should loop. 0 means that it will loop
-    forever. If omitted or ``None``, the image will not loop.
-
-**comment**
-    A comment about the image.
-
 Reading local images
 ~~~~~~~~~~~~~~~~~~~~
 
 The GIF loader creates an image memory the same size as the GIF file’s *logical
 screen size*, and pastes the actual pixel data (the *local image*) into this
-image. If you only want the actual pixel rectangle, you can crop the image::
+image. If you only want the actual pixel rectangle, you can manipulate the
+:py:attr:`~PIL.Image.Image.size` and :py:attr:`~PIL.Image.Image.tile`
+attributes before loading the file::
 
     im = Image.open(...)
 
     if im.tile[0][0] == "gif":
         # only read the first "local image" from this GIF file
-        box = im.tile[0][1]
-        im = im.crop(box)
+        tag, (x0, y0, x1, y1), offset, extra = im.tile[0]
+        im.size = (x1 - x0, y1 - y0)
+        im.tile = [(tag, (0, 0) + im.size, offset, extra)]
 
 ICNS
 ^^^^
 
-Pillow reads and writes macOS ``.icns`` files.  By default, the
+PIL reads and (macOS only) writes macOS ``.icns`` files.  By default, the
 largest available icon is read, though you can override this by setting the
 :py:attr:`~PIL.Image.Image.size` property before calling
-:py:meth:`~PIL.Image.Image.load`.  The :py:meth:`~PIL.Image.open` method
+:py:meth:`~PIL.Image.Image.load`.  The :py:meth:`~PIL.Image.Image.open` method
 sets the following :py:attr:`~PIL.Image.Image.info` property:
-
-.. note::
-
-    Prior to version 8.3.0, Pillow could only write ICNS files on macOS.
 
 **sizes**
     A list of supported sizes found in this icon file; these are a
@@ -331,29 +168,10 @@ sets the following :py:attr:`~PIL.Image.Image.info` property:
     ask for ``(512, 512, 2)``, the final value of
     :py:attr:`~PIL.Image.Image.size` will be ``(1024, 1024)``).
 
-.. _icns-saving:
-
-Saving
-~~~~~~
-
-The :py:meth:`~PIL.Image.Image.save` method can take the following keyword arguments:
-
-**append_images**
-    A list of images to replace the scaled down versions of the image.
-    The order of the images does not matter, as their use is determined by
-    the size of each image.
-
-    .. versionadded:: 5.1.0
-
 ICO
 ^^^
 
 ICO is used to store icons on Windows. The largest available icon is read.
-
-.. _ico-saving:
-
-Saving
-~~~~~~
 
 The :py:meth:`~PIL.Image.Image.save` method supports the following options:
 
@@ -363,21 +181,6 @@ The :py:meth:`~PIL.Image.Image.save` method supports the following options:
     (64, 64), (128, 128), (256, 256)]``. Any sizes bigger than the original
     size or 256 will be ignored.
 
-The :py:meth:`~PIL.Image.Image.save` method can take the following keyword arguments:
-
-**append_images**
-    A list of images to replace the scaled down versions of the image.
-    The order of the images does not matter, as their use is determined by
-    the size of each image.
-
-    .. versionadded:: 8.1.0
-
-**bitmap_format**
-    By default, the image data will be saved in PNG format. With a bitmap format of
-    "bmp", image data will be saved in BMP format instead.
-
-    .. versionadded:: 8.3.0
-
 IM
 ^^
 
@@ -385,27 +188,19 @@ IM is a format used by LabEye and other applications based on the IFUNC image
 processing library. The library reads and writes most uncompressed interchange
 versions of this format.
 
-IM is the only format that can store all internal Pillow formats.
+IM is the only format that can store all internal PIL formats.
 
 JPEG
 ^^^^
 
-Pillow reads JPEG, JFIF, and Adobe JPEG files containing ``L``, ``RGB``, or
+PIL reads JPEG, JFIF, and Adobe JPEG files containing ``L``, ``RGB``, or
 ``CMYK`` data. It writes standard and progressive JFIF files.
 
 Using the :py:meth:`~PIL.Image.Image.draft` method, you can speed things up by
 converting ``RGB`` images to ``L``, and resize images to 1/2, 1/4 or 1/8 of
 their original size while loading them.
 
-By default Pillow doesn't allow loading of truncated JPEG files, set
-:data:`.ImageFile.LOAD_TRUNCATED_IMAGES` to override this.
-
-.. _jpeg-opening:
-
-Opening
-~~~~~~~
-
-The :py:meth:`~PIL.Image.open` method may set the following
+The :py:meth:`~PIL.Image.Image.open` method may set the following
 :py:attr:`~PIL.Image.Image.info` properties if available:
 
 **jfif**
@@ -446,25 +241,14 @@ The :py:meth:`~PIL.Image.open` method may set the following
 **exif**
     Raw EXIF data from the image.
 
-**comment**
-    A comment about the image.
-
-    .. versionadded:: 7.1.0
-
-.. _jpeg-saving:
-
-Saving
-~~~~~~
 
 The :py:meth:`~PIL.Image.Image.save` method supports the following options:
 
 **quality**
-    The image quality, on a scale from 0 (worst) to 95 (best), or the string
-    ``keep``. The default is 75. Values above 95 should be avoided; 100 disables
-    portions of the JPEG compression algorithm, and results in large files with
-    hardly any gain in image quality. The value ``keep`` is only valid for JPEG
-    files and will retain the original image quality level, subsampling, and
-    qtables.
+    The image quality, on a scale from 1 (worst) to 95 (best). The default is
+    75. Values above 95 should be avoided; 100 disables portions of the JPEG
+    compression algorithm, and results in large files with hardly any gain in
+    image quality.
 
 **optimize**
     If present and true, indicates that the encoder should make an extra pass
@@ -487,38 +271,15 @@ The :py:meth:`~PIL.Image.Image.save` method supports the following options:
 **exif**
     If present, the image will be stored with the provided raw EXIF data.
 
-**keep_rgb**
-    By default, libjpeg converts images with an RGB color space to YCbCr.
-    If this option is present and true, those images will be stored as RGB
-    instead.
-
-    When this option is enabled, attempting to chroma-subsample RGB images
-    with the ``subsampling`` option will raise an :py:exc:`OSError`.
-
-    .. versionadded:: 10.2.0
-
 **subsampling**
     If present, sets the subsampling for the encoder.
 
     * ``keep``: Only valid for JPEG files, will retain the original image setting.
     * ``4:4:4``, ``4:2:2``, ``4:2:0``: Specific sampling values
+    * ``-1``: equivalent to ``keep``
     * ``0``: equivalent to ``4:4:4``
     * ``1``: equivalent to ``4:2:2``
     * ``2``: equivalent to ``4:2:0``
-
-    If absent, the setting will be determined by libjpeg or libjpeg-turbo.
-
-**restart_marker_blocks**
-    If present, emit a restart marker whenever the specified number of MCU
-    blocks has been produced.
-
-    .. versionadded:: 10.2.0
-
-**restart_marker_rows**
-    If present, emit a restart marker whenever the specified number of MCU
-    rows has been produced.
-
-    .. versionadded:: 10.2.0
 
 **qtables**
     If present, sets the qtables for the encoder. This is listed as an
@@ -532,24 +293,6 @@ The :py:meth:`~PIL.Image.Image.save` method supports the following options:
 
     .. versionadded:: 2.5.0
 
-**streamtype**
-    Allows storing images without quantization and Huffman tables, or with
-    these tables but without image data.  This is useful for container formats
-    or network protocols that handle tables separately and share them between
-    images.
-
-    * ``0`` (default): interchange datastream, with tables and image data
-    * ``1``: abbreviated table specification (tables-only) datastream
-
-      .. versionadded:: 10.2.0
-
-    * ``2``: abbreviated image (image-only) datastream
-
-**comment**
-    A comment about the image.
-
-    .. versionadded:: 9.4.0
-
 
 .. note::
 
@@ -562,25 +305,19 @@ JPEG 2000
 
 .. versionadded:: 2.4.0
 
-Pillow reads and writes JPEG 2000 files containing ``L``, ``LA``, ``RGB``,
-``RGBA``, or ``YCbCr`` data.  When reading, ``YCbCr`` data is converted to
-``RGB`` or ``RGBA`` depending on whether or not there is an alpha channel.
-Beginning with version 8.3.0, Pillow can read (but not write) ``RGB``,
-``RGBA``, and ``YCbCr`` images with subsampled components.  Pillow supports
-JPEG 2000 raw codestreams (``.j2k`` files), as well as boxed JPEG 2000 files
-(``.jp2`` or ``.jpx`` files).
+PIL reads and writes JPEG 2000 files containing ``L``, ``LA``, ``RGB`` or
+``RGBA`` data.  It can also read files containing ``YCbCr`` data, which it
+converts on read into ``RGB`` or ``RGBA`` depending on whether or not there is
+an alpha channel.  PIL supports JPEG 2000 raw codestreams (``.j2k`` files), as
+well as boxed JPEG 2000 files (``.j2p`` or ``.jpx`` files).  PIL does *not*
+support files whose components have different sampling frequencies.
 
 When loading, if you set the ``mode`` on the image prior to the
-:py:meth:`~PIL.Image.Image.load` method being invoked, you can ask Pillow to
+:py:meth:`~PIL.Image.Image.load` method being invoked, you can ask PIL to
 convert the image to either ``RGB`` or ``RGBA`` rather than choosing for
 itself.  It is also possible to set ``reduce`` to the number of resolutions to
 discard (each one reduces the size of the resulting image by a factor of 2),
 and ``layers`` to specify the number of quality layers to load.
-
-.. _jpeg-2000-saving:
-
-Saving
-~~~~~~
 
 The :py:meth:`~PIL.Image.Image.save` method supports the following options:
 
@@ -595,12 +332,12 @@ The :py:meth:`~PIL.Image.Image.save` method supports the following options:
     image will be saved without tiling.
 
 **quality_mode**
-    Either ``"rates"`` or ``"dB"`` depending on the units you want to use to
+    Either `"rates"` or `"dB"` depending on the units you want to use to
     specify image quality.
 
 **quality_layers**
     A sequence of numbers, each of which represents either an approximate size
-    reduction (if quality mode is ``"rates"``) or a signal to noise ratio value
+    reduction (if quality mode is `"rates"`) or a signal to noise ratio value
     in decibels.  If not specified, defaults to a single layer of full quality.
 
 **num_resolutions**
@@ -618,18 +355,9 @@ The :py:meth:`~PIL.Image.Image.save` method supports the following options:
     and must be greater than the code-block size.
 
 **irreversible**
-    If ``True``, use the lossy discrete waveform transformation DWT 9-7.
-    Defaults to ``False``, which uses the lossless DWT 5-3.
-
-**mct**
-    If ``1`` then enable multiple component transformation when encoding,
-    otherwise use ``0`` for no component transformation (default). If MCT is
-    enabled and ``irreversible`` is ``True`` then the Irreversible Color
-    Transformation will be applied, otherwise encoding will use the
-    Reversible Color Transformation. MCT works best with a ``mode`` of
-    ``RGB`` and is only applicable when the image data has 3 components.
-
-    .. versionadded:: 9.1.0
+    If ``True``, use the lossy Irreversible Color Transformation
+    followed by DWT 9-7.  Defaults to ``False``, which means to use the
+    Reversible Color Transformation with DWT 5-3.
 
 **progression**
     Controls the progression order; must be one of ``"LRCP"``, ``"RLCP"``,
@@ -640,11 +368,6 @@ The :py:meth:`~PIL.Image.Image.save` method supports the following options:
     encoded using RLCP mode will have increasing resolutions decoded as they
     arrive, and so on.
 
-**signed**
-    If true, then tell the encoder to save the image as signed.
-
-    .. versionadded:: 9.4.0
-
 **cinema_mode**
     Set the encoder to produce output compliant with the digital cinema
     specifications.  The options here are ``"no"`` (the default),
@@ -654,26 +377,6 @@ The :py:meth:`~PIL.Image.Image.save` method supports the following options:
     for compliant 4K files, *at least one* of the dimensions must match
     4096 x 2160.
 
-**no_jp2**
-    If ``True`` then don't wrap the raw codestream in the JP2 file format when
-    saving, otherwise the extension of the filename will be used to determine
-    the format (default).
-
-    .. versionadded:: 9.1.0
-
-**comment**
-    Adds a custom comment to the file, replacing the default
-    "Created by OpenJPEG version" comment.
-
-    .. versionadded:: 9.5.0
-
-**plt**
-    If ``True`` and OpenJPEG 2.4.0 or later is available, then include a PLT
-    (packet length, tile-part header) marker in the produced file.
-    Defaults to ``False``.
-
-    .. versionadded:: 9.5.0
-
 .. note::
 
    To enable JPEG 2000 support, you need to build and install the OpenJPEG
@@ -681,102 +384,49 @@ The :py:meth:`~PIL.Image.Image.save` method supports the following options:
    Library.
 
    Windows users can install the OpenJPEG binaries available on the
-   OpenJPEG website, but must add them to their PATH in order to use Pillow (if
+   OpenJPEG website, but must add them to their PATH in order to use PIL (if
    you fail to do this, you will get errors about not being able to load the
    ``_imaging`` DLL).
 
 MSP
 ^^^
 
-Pillow identifies and reads MSP files from Windows 1 and 2. The library writes
+PIL identifies and reads MSP files from Windows 1 and 2. The library writes
 uncompressed (Windows 1) versions of this format.
 
 PCX
 ^^^
 
-Pillow reads and writes PCX files containing ``1``, ``L``, ``P``, or ``RGB`` data.
-
-PFM
-^^^
-
-.. versionadded:: 10.3.0
-
-Pillow reads and writes grayscale (Pf format) Portable FloatMap (PFM) files
-containing ``F`` data.
-
-Color (PF format) PFM files are not supported.
-
-Opening
-~~~~~~~
-
-The :py:func:`~PIL.Image.open` function sets the following
-:py:attr:`~PIL.Image.Image.info` properties:
-
-**scale**
-    The absolute value of the number stored in the *Scale Factor / Endianness* line.
+PIL reads and writes PCX files containing ``1``, ``L``, ``P``, or ``RGB`` data.
 
 PNG
 ^^^
 
-Pillow identifies, reads, and writes PNG files containing ``1``, ``L``, ``LA``,
-``I``, ``P``, ``RGB`` or ``RGBA`` data. Interlaced files are supported as of
-v1.1.7.
+PIL identifies, reads, and writes PNG files containing ``1``, ``L``, ``P``,
+``RGB``, or ``RGBA`` data. Interlaced files are supported as of v1.1.7.
 
-As of Pillow 6.0, EXIF data can be read from PNG images. However, unlike other
-image formats, EXIF data is not guaranteed to be present in
-:py:attr:`~PIL.Image.Image.info` until :py:meth:`~PIL.Image.Image.load` has been
-called.
-
-By default Pillow doesn't allow loading of truncated PNG files, set
-:data:`.ImageFile.LOAD_TRUNCATED_IMAGES` to override this.
-
-.. _png-opening:
-
-Opening
-~~~~~~~
-
-The :py:func:`~PIL.Image.open` function sets the following
+The :py:meth:`~PIL.Image.Image.open` method sets the following
 :py:attr:`~PIL.Image.Image.info` properties, when appropriate:
-
-**chromaticity**
-    The chromaticity points, as an 8 tuple of floats. (``White Point
-    X``, ``White Point Y``, ``Red X``, ``Red Y``, ``Green X``, ``Green
-    Y``, ``Blue X``, ``Blue Y``)
 
 **gamma**
     Gamma, given as a floating point number.
-
-**srgb**
-    The sRGB rendering intent as an integer.
-
-      * 0 Perceptual
-      * 1 Relative Colorimetric
-      * 2 Saturation
-      * 3 Absolute Colorimetric
 
 **transparency**
     For ``P`` images: Either the palette index for full transparent pixels,
     or a byte string with alpha values for each palette entry.
 
-    For ``1``, ``L``, ``I`` and ``RGB`` images, the color that represents
-    full transparent pixels in this image.
+    For ``L`` and ``RGB`` images, the color that represents full transparent
+    pixels in this image.
 
     This key is omitted if the image is not a transparent palette image.
 
-.. _png-text:
-
-``open`` also sets ``Image.text`` to a dictionary of the values of the
+``Open`` also sets ``Image.text`` to a list of the values of the
 ``tEXt``, ``zTXt``, and ``iTXt`` chunks of the PNG image. Individual
 compressed chunks are limited to a decompressed size of
-:data:`.PngImagePlugin.MAX_TEXT_CHUNK`, by default 1MB, to prevent
+``PngImagePlugin.MAX_TEXT_CHUNK``, by default 1MB, to prevent
 decompression bombs. Additionally, the total size of all of the text
-chunks is limited to :data:`.PngImagePlugin.MAX_TEXT_MEMORY`, defaulting to
+chunks is limited to ``PngImagePlugin.MAX_TEXT_MEMORY``, defaulting to
 64MB.
-
-.. _png-saving:
-
-Saving
-~~~~~~
 
 The :py:meth:`~PIL.Image.Image.save` method supports the following options:
 
@@ -786,8 +436,8 @@ The :py:meth:`~PIL.Image.Image.save` method supports the following options:
     encoder settings.
 
 **transparency**
-    For ``P``, ``1``, ``L``, ``I``, and ``RGB`` images, this option controls
-    what color from the image to mark as transparent.
+    For ``P``, ``L``, and ``RGB`` images, this option controls what
+    color image to mark as transparent.
 
     For ``P`` images, this can be a either the palette index,
     or a byte string with alpha values for each palette entry.
@@ -796,7 +446,7 @@ The :py:meth:`~PIL.Image.Image.save` method supports the following options:
     A tuple of two numbers corresponding to the desired dpi in each direction.
 
 **pnginfo**
-    A :py:class:`PIL.PngImagePlugin.PngInfo` instance containing chunks.
+    A :py:class:`PIL.PngImagePlugin.PngInfo` instance containing text tags.
 
 **compress_level**
     ZLIB compression level, a number between 0 and 9: 1 gives best speed,
@@ -806,11 +456,6 @@ The :py:meth:`~PIL.Image.Image.save` method supports the following options:
 
 **icc_profile**
     The ICC Profile to include in the saved file.
-
-**exif**
-    The exif data to include in the saved file.
-
-    .. versionadded:: 6.0.0
 
 **bits (experimental)**
     For ``P`` images, this option controls how many bits to store. If omitted,
@@ -822,139 +467,14 @@ The :py:meth:`~PIL.Image.Image.save` method supports the following options:
 .. note::
 
     To enable PNG support, you need to build and install the ZLIB compression
-    library before building the Python Imaging Library. See the
-    :doc:`installation documentation <../installation>` for details.
-
-.. _apng-sequences:
-
-APNG sequences
-~~~~~~~~~~~~~~
-
-The PNG loader includes limited support for reading and writing Animated Portable
-Network Graphics (APNG) files.
-When an APNG file is loaded, :py:meth:`~PIL.ImageFile.ImageFile.get_format_mimetype`
-will return ``"image/apng"``. The value of the :py:attr:`~PIL.Image.Image.is_animated`
-property will be ``True`` when the :py:attr:`~PIL.Image.Image.n_frames` property is
-greater than 1. For APNG files, the ``n_frames`` property depends on both the animation
-frame count as well as the presence or absence of a default image. See the
-``default_image`` property documentation below for more details.
-The :py:meth:`~PIL.Image.Image.seek` and :py:meth:`~PIL.Image.Image.tell` methods
-are supported.
-
-``im.seek()`` raises an :py:exc:`EOFError` if you try to seek after the last frame.
-
-These :py:attr:`~PIL.Image.Image.info` properties will be set for APNG frames,
-where applicable:
-
-**default_image**
-    Specifies whether or not this APNG file contains a separate default image,
-    which is not a part of the actual APNG animation.
-
-    When an APNG file contains a default image, the initially loaded image (i.e.
-    the result of ``seek(0)``) will be the default image.
-    To account for the presence of the default image, the
-    :py:attr:`~PIL.Image.Image.n_frames` property will be set to ``frame_count + 1``,
-    where ``frame_count`` is the actual APNG animation frame count.
-    To load the first APNG animation frame, ``seek(1)`` must be called.
-
-    * ``True`` - The APNG contains default image, which is not an animation frame.
-    * ``False`` - The APNG does not contain a default image. The ``n_frames`` property
-      will be set to the actual APNG animation frame count.
-      The initially loaded image (i.e. ``seek(0)``) will be the first APNG animation
-      frame.
-
-**loop**
-    The number of times to loop this APNG, 0 indicates infinite looping.
-
-**duration**
-    The time to display this APNG frame (in milliseconds).
-
-.. note::
-
-    The APNG loader returns images the same size as the APNG file's logical screen size.
-    The returned image contains the pixel data for a given frame, after applying
-    any APNG frame disposal and frame blend operations (i.e. it contains what a web
-    browser would render for this frame - the composite of all previous frames and this
-    frame).
-
-    Any APNG file containing sequence errors is treated as an invalid image. The APNG
-    loader will not attempt to repair and reorder files containing sequence errors.
-
-.. _apng-saving:
-
-Saving
-~~~~~~
-
-When calling :py:meth:`~PIL.Image.Image.save`, by default only a single frame PNG file
-will be saved. To save an APNG file (including a single frame APNG), the ``save_all``
-parameter must be set to ``True``. The following parameters can also be set:
-
-**default_image**
-    Boolean value, specifying whether or not the base image is a default image.
-    If ``True``, the base image will be used as the default image, and the first image
-    from the ``append_images`` sequence will be the first APNG animation frame.
-    If ``False``, the base image will be used as the first APNG animation frame.
-    Defaults to ``False``.
-
-**append_images**
-    A list or tuple of images to append as additional frames. Each of the
-    images in the list can be single or multiframe images. The size of each frame
-    should match the size of the base image. Also note that if a frame's mode does
-    not match that of the base image, the frame will be converted to the base image
-    mode.
-
-**loop**
-    Integer number of times to loop this APNG, 0 indicates infinite looping.
-    Defaults to 0.
-
-**duration**
-    Integer (or list or tuple of integers) length of time to display this APNG frame
-    (in milliseconds).
-    Defaults to 0.
-
-**disposal**
-    An integer (or list or tuple of integers) specifying the APNG disposal
-    operation to be used for this frame before rendering the next frame.
-    Defaults to 0.
-
-    * 0 (:py:data:`~PIL.PngImagePlugin.Disposal.OP_NONE`, default) -
-      No disposal is done on this frame before rendering the next frame.
-    * 1 (:py:data:`PIL.PngImagePlugin.Disposal.OP_BACKGROUND`) -
-      This frame's modified region is cleared to fully transparent black before
-      rendering the next frame.
-    * 2 (:py:data:`~PIL.PngImagePlugin.Disposal.OP_PREVIOUS`) -
-      This frame's modified region is reverted to the previous frame's contents before
-      rendering the next frame.
-
-**blend**
-    An integer (or list or tuple of integers) specifying the APNG blend
-    operation to be used for this frame before rendering the next frame.
-    Defaults to 0.
-
-    * 0 (:py:data:`~PIL.PngImagePlugin.Blend.OP_SOURCE`) -
-      All color components of this frame, including alpha, overwrite the previous output
-      image contents.
-    * 1 (:py:data:`~PIL.PngImagePlugin.Blend.OP_OVER`) -
-      This frame should be alpha composited with the previous output image contents.
-
-.. note::
-
-    The ``duration``, ``disposal`` and ``blend`` parameters can be set to lists or tuples to
-    specify values for each individual frame in the animation. The length of the list or tuple
-    must be identical to the total number of actual frames in the APNG animation.
-    If the APNG contains a default image (i.e. ``default_image`` is set to ``True``),
-    these list or tuple parameters should not include an entry for the default image.
-
+    library before building the Python Imaging Library. See the installation
+    documentation for details.
 
 PPM
 ^^^
 
-Pillow reads and writes PBM, PGM, PPM and PNM files containing ``1``, ``L``, ``I`` or
-``RGB`` data.
-
-"Raw" (P4 to P6) formats can be read, and are used when writing.
-
-Since Pillow 9.2.0, "plain" (P1 to P3) formats can be read as well.
+PIL reads and writes PBM, PGM and PPM files containing ``1``, ``L`` or ``RGB``
+data.
 
 SGI
 ^^^
@@ -965,19 +485,14 @@ Pillow reads and writes uncompressed ``L``, ``RGB``, and ``RGBA`` files.
 SPIDER
 ^^^^^^
 
-Pillow reads and writes SPIDER image files of 32-bit floating point data
+PIL reads and writes SPIDER image files of 32-bit floating point data
 ("F;32F").
 
-Pillow also reads SPIDER stack files containing sequences of SPIDER images. The
-:py:meth:`~PIL.Image.Image.seek` and :py:meth:`~PIL.Image.Image.tell` methods are supported, and
+PIL also reads SPIDER stack files containing sequences of SPIDER images. The
+:py:meth:`~file.seek` and :py:meth:`~file.tell` methods are supported, and
 random access is allowed.
 
-.. _spider-opening:
-
-Opening
-~~~~~~~
-
-The :py:meth:`~PIL.Image.open` method sets the following attributes:
+The :py:meth:`~PIL.Image.Image.open` method sets the following attributes:
 
 **format**
     Set to ``SPIDER``
@@ -985,79 +500,40 @@ The :py:meth:`~PIL.Image.open` method sets the following attributes:
 **istack**
     Set to 1 if the file is an image stack, else 0.
 
-**n_frames**
+**nimages**
     Set to the number of images in the stack.
 
-A convenience method, :py:meth:`~PIL.SpiderImagePlugin.SpiderImageFile.convert2byte`,
-is provided for converting floating point data to byte data (mode ``L``)::
+A convenience method, :py:meth:`~PIL.Image.Image.convert2byte`, is provided for
+converting floating point data to byte data (mode ``L``)::
 
-    im = Image.open("image001.spi").convert2byte()
+    im = Image.open('image001.spi').convert2byte()
 
-.. _spider-saving:
-
-Saving
-~~~~~~
+Writing files in SPIDER format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The extension of SPIDER files may be any 3 alphanumeric characters. Therefore
 the output format must be specified explicitly::
 
     im.save('newimage.spi', format='SPIDER')
 
-For more information about the SPIDER image processing package, see
-https://github.com/spider-em/SPIDER
+For more information about the SPIDER image processing package, see the
+`SPIDER homepage`_ at `Wadsworth Center`_.
 
-TGA
-^^^
-
-Pillow reads and writes TGA images containing ``L``, ``LA``, ``P``,
-``RGB``, and ``RGBA`` data. Pillow can read and write both uncompressed and
-run-length encoded TGAs.
-
-.. _tga-saving:
-
-Saving
-~~~~~~
-
-The :py:meth:`~PIL.Image.Image.save` method can take the following keyword arguments:
-
-**compression**
-    If set to "tga_rle", the file will be run-length encoded.
-
-    .. versionadded:: 5.3.0
-
-**id_section**
-    The identification field.
-
-    .. versionadded:: 5.3.0
-
-**orientation**
-    If present and a positive number, the first pixel is for the top left corner,
-    rather than the bottom left corner.
-
-    .. versionadded:: 5.3.0
+.. _SPIDER homepage: https://spider.wadsworth.org/spider_doc/spider/docs/spider.html
+.. _Wadsworth Center: https://www.wadsworth.org/
 
 TIFF
 ^^^^
 
-Pillow reads and writes TIFF files. It can read both striped and tiled
-images, pixel and plane interleaved multi-band images. If you have
-libtiff and its headers installed, Pillow can read and write many kinds
-of compressed TIFF files. If not, Pillow will only read and write
-uncompressed files.
+PIL reads and writes TIFF files. It can read both striped and tiled images,
+pixel and plane interleaved multi-band images, and either uncompressed, or
+Packbits, LZW, or JPEG compressed images.
 
-.. note::
+If you have libtiff and its headers installed, PIL can read and write many more
+kinds of compressed TIFF files. If not, PIL will always write uncompressed
+files.
 
-    Beginning in version 5.0.0, Pillow requires libtiff to read or
-    write compressed files. Prior to that release, Pillow had buggy
-    support for reading Packbits, LZW and JPEG compressed TIFFs
-    without using libtiff.
-
-.. _tiff-opening:
-
-Opening
-~~~~~~~
-
-The :py:meth:`~PIL.Image.open` method sets the following
+The :py:meth:`~PIL.Image.Image.open` method sets the following
 :py:attr:`~PIL.Image.Image.info` properties:
 
 **compression**
@@ -1067,8 +543,8 @@ The :py:meth:`~PIL.Image.open` method sets the following
 
 **dpi**
     Image resolution as an ``(xdpi, ydpi)`` tuple, where applicable. You can use
-    the :py:attr:`~PIL.TiffImagePlugin.TiffImageFile.tag` attribute to get more
-    detailed information about the image resolution.
+    the :py:attr:`~PIL.Image.Image.tag` attribute to get more detailed
+    information about the image resolution.
 
     .. versionadded:: 1.1.5
 
@@ -1079,9 +555,9 @@ The :py:meth:`~PIL.Image.open` method sets the following
     .. versionadded:: 1.1.5
 
 
-The :py:attr:`~PIL.TiffImagePlugin.TiffImageFile.tag_v2` attribute contains a
-dictionary of TIFF metadata. The keys are numerical indexes from
-:py:data:`.TiffTags.TAGS_V2`.  Values are strings or numbers for single
+The :py:attr:`~PIL.Image.Image.tag_v2` attribute contains a dictionary
+of TIFF metadata. The keys are numerical indexes from
+:py:attr:`~PIL.TiffTags.TAGS_V2`.  Values are strings or numbers for single
 items, multiple values are returned in a tuple of values. Rational
 numbers are returned as a :py:class:`~PIL.TiffImagePlugin.IFDRational`
 object.
@@ -1089,29 +565,16 @@ object.
     .. versionadded:: 3.0.0
 
 For compatibility with legacy code, the
-:py:attr:`~PIL.TiffImagePlugin.TiffImageFile.tag` attribute contains a dictionary
-of decoded TIFF fields as returned prior to version 3.0.0.  Values are
+:py:attr:`~PIL.Image.Image.tag` attribute contains a dictionary of
+decoded TIFF fields as returned prior to version 3.0.0.  Values are
 returned as either strings or tuples of numeric values. Rational
 numbers are returned as a tuple of ``(numerator, denominator)``.
 
     .. deprecated:: 3.0.0
 
-Reading Multi-frame TIFF Images
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The TIFF loader supports the :py:meth:`~PIL.Image.Image.seek` and
-:py:meth:`~PIL.Image.Image.tell` methods, taking and returning frame numbers
-within the image file. You can combine these methods to seek to the next frame
-(``im.seek(im.tell() + 1)``). Frames are numbered from 0 to ``im.n_frames - 1``,
-and can be accessed in any order.
-
-``im.seek()`` raises an :py:exc:`EOFError` if you try to seek after the
-last frame.
-
-.. _tiff-saving:
-
-Saving
-~~~~~~
+Saving Tiff Images
+~~~~~~~~~~~~~~~~~~
 
 The :py:meth:`~PIL.Image.Image.save` method can take the following keyword arguments:
 
@@ -1119,14 +582,6 @@ The :py:meth:`~PIL.Image.Image.save` method can take the following keyword argum
     If true, Pillow will save all frames of the image to a multiframe tiff document.
 
     .. versionadded:: 3.4.0
-
-**append_images**
-    A list of images to append as additional frames. Each of the
-    images in the list can be single or multiframe images. Note however, that for
-    correct results, all the appended images should have the same
-    ``encoderinfo`` and ``encoderconfig`` properties.
-
-    .. versionadded:: 4.2.0
 
 **tiffinfo**
     A :py:class:`~PIL.TiffImagePlugin.ImageFileDirectory_v2` object or dict
@@ -1136,7 +591,7 @@ The :py:meth:`~PIL.Image.Image.save` method can take the following keyword argum
     object and setting the type in
     :py:attr:`~PIL.TiffImagePlugin.ImageFileDirectory_v2.tagtype` with
     the appropriate numerical value from
-    :py:data:`.TiffTags.TYPES`.
+    ``TiffTags.TYPES``.
 
     .. versionadded:: 2.3.0
 
@@ -1149,38 +604,21 @@ The :py:meth:`~PIL.Image.Image.save` method can take the following keyword argum
     :py:class:`~PIL.TiffImagePlugin.ImageFileDirectory_v1` object may
     be passed in this field. However, this is deprecated.
 
-    .. versionadded:: 5.4.0
+    .. versionadded:: 3.0.0
 
-    Previous versions only supported some tags when writing using
+ .. note::
+
+    Only some tags are currently supported when writing using
     libtiff. The supported list is found in
-    :py:data:`.TiffTags.LIBTIFF_CORE`.
-
-    .. versionadded:: 6.1.0
-
-    Added support for signed types (e.g. ``TIFF_SIGNED_LONG``) and multiple values.
-    Multiple values for a single tag must be to
-    :py:class:`~PIL.TiffImagePlugin.ImageFileDirectory_v2` as a tuple and
-    require a matching type in
-    :py:attr:`~PIL.TiffImagePlugin.ImageFileDirectory_v2.tagtype` tagtype.
-
-**exif**
-    Alternate keyword to "tiffinfo", for consistency with other formats.
-
-    .. versionadded:: 8.4.0
+    :py:attr:`~PIL:TiffTags.LIBTIFF_CORE`.
 
 **compression**
     A string containing the desired compression method for the
     file. (valid only with libtiff installed) Valid compression
-    methods are: :data:`None`, ``"group3"``, ``"group4"``, ``"jpeg"``, ``"lzma"``,
-    ``"packbits"``, ``"tiff_adobe_deflate"``, ``"tiff_ccitt"``, ``"tiff_lzw"``,
-    ``"tiff_raw_16"``, ``"tiff_sgilog"``, ``"tiff_sgilog24"``, ``"tiff_thunderscan"``,
-    ``"webp"``, ``"zstd"``
-
-**quality**
-    The image quality for JPEG compression, on a scale from 0 (worst) to 100
-    (best). The default is 75.
-
-    .. versionadded:: 6.1.0
+    methods are: ``None``, ``"tiff_ccitt"``, ``"group3"``,
+    ``"group4"``, ``"tiff_jpeg"``, ``"tiff_adobe_deflate"``,
+    ``"tiff_thunderscan"``, ``"tiff_deflate"``, ``"tiff_sgilog"``,
+    ``"tiff_sgilog24"``, ``"tiff_raw_16"``
 
 These arguments to set the tiff header fields are an alternative to
 using the general tags available through tiffinfo.
@@ -1196,113 +634,48 @@ using the general tags available through tiffinfo.
 **copyright**
     Strings
 
-**icc_profile**
-    The ICC Profile to include in the saved file.
-
 **resolution_unit**
-    An integer. 1 for no unit, 2 for inches and 3 for centimeters.
+    A string of "inch", "centimeter" or "cm"
 
 **resolution**
-    Either an integer or a float, used for both the x and y resolution.
 
 **x_resolution**
-    Either an integer or a float.
 
 **y_resolution**
-    Either an integer or a float.
 
 **dpi**
-    A tuple of ``(x_resolution, y_resolution)``, with inches as the resolution
-    unit. For consistency with other image formats, the x and y resolutions
-    of the dpi will be rounded to the nearest integer.
+    Either a Float, 2 tuple of (numerator, denominator) or a
+    :py:class:`~PIL.TiffImagePlugin.IFDRational`. Resolution implies
+    an equal x and y resolution, dpi also implies a unit of inches.
 
 
 WebP
 ^^^^
 
-Pillow reads and writes WebP files. Requires libwebp v0.5.0 or later.
-
-.. _webp-saving:
-
-Saving
-~~~~~~
+PIL reads and writes WebP files. The specifics of PIL's capabilities with this
+format are currently undocumented.
 
 The :py:meth:`~PIL.Image.Image.save` method supports the following options:
 
 **lossless**
-    If present and true, instructs the WebP writer to use lossless compression.
+    If present and true, instructs the WEBP writer to use lossless compression.
 
 **quality**
-    Integer, 0-100, defaults to 80. For lossy, 0 gives the smallest
-    size and 100 the largest. For lossless, this parameter is the amount
-    of effort put into the compression: 0 is the fastest, but gives larger
-    files compared to the slowest, but best, 100.
+    Integer, 1-100, Defaults to 80. Sets the quality level for
+    lossy compression.
 
-**alpha_quality**
-    Integer, 0-100, defaults to 100. For lossy compression only. 0 gives the
-    smallest size and 100 is lossless.
-
-**method**
-    Quality/speed trade-off (0=fast, 6=slower-better). Defaults to 4.
-
-**exact**
-    If true, preserve the transparent RGB values. Otherwise, discard
-    invisible RGB values for better compression. Defaults to false.
-
-**icc_profile**
-    The ICC Profile to include in the saved file.
+**icc_procfile**
+    The ICC Profile to include in the saved file. Only supported if
+    the system webp library was built with webpmux support.
 
 **exif**
-    The exif data to include in the saved file.
-
-**xmp**
-    The XMP data to include in the saved file.
-
-Saving sequences
-~~~~~~~~~~~~~~~~
-
-When calling :py:meth:`~PIL.Image.Image.save` to write a WebP file, by default
-only the first frame of a multiframe image will be saved. If the ``save_all``
-argument is present and true, then all frames will be saved, and the following
-options will also be available.
-
-**append_images**
-    A list of images to append as additional frames. Each of the
-    images in the list can be single or multiframe images.
-
-**duration**
-    The display duration of each frame, in milliseconds. Pass a single
-    integer for a constant duration, or a list or tuple to set the
-    duration for each frame separately.
-
-**loop**
-    Number of times to repeat the animation. Defaults to [0 = infinite].
-
-**background**
-    Background color of the canvas, as an RGBA tuple with values in
-    the range of (0-255).
-
-**minimize_size**
-    If true, minimize the output size (slow). Implicitly disables
-    key-frame insertion.
-
-**kmin, kmax**
-    Minimum and maximum distance between consecutive key frames in
-    the output. The library may insert some key frames as needed
-    to satisfy this criteria. Note that these conditions should
-    hold: kmax > kmin and kmin >= kmax / 2 + 1. Also, if kmax <= 0,
-    then key-frame insertion is disabled; and if kmax == 1, then all
-    frames will be key-frames (kmin value does not matter for these
-    special cases).
-
-**allow_mixed**
-    If true, use mixed compression mode; the encoder heuristically
-    chooses between lossy and lossless for each frame.
+    The exif data to include in the saved file. Only supported if
+    the system webp library was built with webpmux support.
 
 XBM
 ^^^
 
-Pillow reads and writes X bitmap files (mode ``1``).
+PIL reads and writes X bitmap files (mode ``1``).
 
 Read-only formats
 -----------------
@@ -1321,22 +694,25 @@ is commonly used in fax applications. The DCX decoder can read files containing
 ``1``, ``L``, ``P``, or ``RGB`` data.
 
 When the file is opened, only the first image is read. You can use
-:py:meth:`~PIL.Image.Image.seek` or :py:mod:`~PIL.ImageSequence` to read other images.
+:py:meth:`~file.seek` or :py:mod:`~PIL.ImageSequence` to read other images.
 
-FITS
-^^^^
 
-.. versionadded:: 9.1.0
+DDS
+^^^
 
-Pillow identifies and reads FITS files, commonly used for astronomy. Uncompressed and
-GZIP_1 compressed images can be read.
+DDS is a popular container texture format used in video games and natively
+supported by DirectX.
+Currently, DXT1, DXT3, and DXT5 pixel formats are supported and only in ``RGBA``
+mode.
+
+.. versionadded:: 3.4.0 DXT3
 
 FLI, FLC
 ^^^^^^^^
 
-Pillow reads Autodesk FLI and FLC animations.
+PIL reads Autodesk FLI and FLC animations.
 
-The :py:meth:`~PIL.Image.open` method sets the following
+The :py:meth:`~PIL.Image.Image.open` method sets the following
 :py:attr:`~PIL.Image.Image.info` properties:
 
 **duration**
@@ -1345,10 +721,9 @@ The :py:meth:`~PIL.Image.open` method sets the following
 FPX
 ^^^
 
-Pillow reads Kodak FlashPix files. Only the highest resolution image is read from the
-file, and the viewing transform is not taken into account.
-
-To enable FPX support, you must install :pypi:`olefile`.
+PIL reads Kodak FlashPix files. In the current version, only the highest
+resolution image is read from the file, and the viewing transform is not taken
+into account.
 
 .. note::
 
@@ -1370,12 +745,7 @@ GBR
 
 The GBR decoder reads GIMP brush files, version 1 and 2.
 
-.. _gbr-opening:
-
-Opening
-~~~~~~~
-
-The :py:meth:`~PIL.Image.open` method sets the following
+The :py:meth:`~PIL.Image.Image.open` method sets the following
 :py:attr:`~PIL.Image.Image.info` properties:
 
 **comment**
@@ -1387,15 +757,11 @@ The :py:meth:`~PIL.Image.open` method sets the following
 GD
 ^^
 
-Pillow reads uncompressed GD2 files. Note that you must use
-:py:func:`PIL.GdImageFile.open` to read such a file.
+PIL reads uncompressed GD files. Note that this file format cannot be
+automatically identified, so you must use :py:func:`PIL.GdImageFile.open` to
+read such a file.
 
-.. _gd-opening:
-
-Opening
-~~~~~~~
-
-The :py:meth:`~PIL.Image.open` method sets the following
+The :py:meth:`~PIL.Image.Image.open` method sets the following
 :py:attr:`~PIL.Image.Image.info` properties:
 
 **transparency**
@@ -1405,153 +771,81 @@ The :py:meth:`~PIL.Image.open` method sets the following
 IMT
 ^^^
 
-Pillow reads Image Tools images containing ``L`` data.
+PIL reads Image Tools images containing ``L`` data.
 
 IPTC/NAA
 ^^^^^^^^
 
-Pillow provides limited read support for IPTC/NAA newsphoto files.
+PIL provides limited read support for IPTC/NAA newsphoto files.
 
 MCIDAS
 ^^^^^^
 
-Pillow identifies and reads 8-bit McIdas area files.
+PIL identifies and reads 8-bit McIdas area files.
 
 MIC
 ^^^
 
-Pillow identifies and reads Microsoft Image Composer (MIC) files. When opened,
-the first sprite in the file is loaded. You can use :py:meth:`~PIL.Image.Image.seek` and
-:py:meth:`~PIL.Image.Image.tell` to read other sprites from the file.
+PIL identifies and reads Microsoft Image Composer (MIC) files. When opened, the
+first sprite in the file is loaded. You can use :py:meth:`~file.seek` and
+:py:meth:`~file.tell` to read other sprites from the file.
 
 Note that there may be an embedded gamma of 2.2 in MIC files.
-
-To enable MIC support, you must install :pypi:`olefile`.
 
 MPO
 ^^^
 
 Pillow identifies and reads Multi Picture Object (MPO) files, loading the primary
-image when first opened. The :py:meth:`~PIL.Image.Image.seek` and :py:meth:`~PIL.Image.Image.tell`
+image when first opened. The :py:meth:`~file.seek` and :py:meth:`~file.tell`
 methods may be used to read other pictures from the file. The pictures are
 zero-indexed and random access is supported.
-
-.. _mpo-saving:
-
-Saving
-~~~~~~
-
-When calling :py:meth:`~PIL.Image.Image.save` to write an MPO file, by default
-only the first frame of a multiframe image will be saved. If the ``save_all``
-argument is present and true, then all frames will be saved, and the following
-option will also be available.
-
-**append_images**
-    A list of images to append as additional pictures. Each of the
-    images in the list can be single or multiframe images.
-
-    .. versionadded:: 9.3.0
 
 PCD
 ^^^
 
-Pillow reads PhotoCD files containing ``RGB`` data. This only reads the 768x512
+PIL reads PhotoCD files containing ``RGB`` data. This only reads the 768x512
 resolution image from the file. Higher resolutions are encoded in a proprietary
 encoding.
 
 PIXAR
 ^^^^^
 
-Pillow provides limited support for PIXAR raster files. The library can
-identify and read “dumped” RGB files.
+PIL provides limited support for PIXAR raster files. The library can identify
+and read “dumped” RGB files.
 
 The format code is ``PIXAR``.
 
 PSD
 ^^^
 
-Pillow identifies and reads PSD files written by Adobe Photoshop 2.5 and 3.0.
+PIL identifies and reads PSD files written by Adobe Photoshop 2.5 and 3.0.
 
-QOI
+
+TGA
 ^^^
 
-.. versionadded:: 9.5.0
-
-Pillow reads images in Quite OK Image format using a Python decoder. If you wish to
-write code specifically for this format, :pypi:`qoi` is an alternative library that
-uses C to decode the image and interfaces with NumPy.
-
-SUN
-^^^
-
-Pillow identifies and reads Sun raster files.
+PIL reads 24- and 32-bit uncompressed and run-length encoded TGA files.
 
 WAL
 ^^^
 
 .. versionadded:: 1.1.4
 
-Pillow reads Quake2 WAL texture files.
+PIL reads Quake2 WAL texture files.
 
 Note that this file format cannot be automatically identified, so you must use
 the open function in the :py:mod:`~PIL.WalImageFile` module to read files in
 this format.
 
 By default, a Quake2 standard palette is attached to the texture. To override
-the palette, use the :py:func:`PIL.Image.Image.putpalette()` method.
-
-WMF, EMF
-^^^^^^^^
-
-Pillow can identify WMF and EMF files.
-
-On Windows, it can read WMF and EMF files. By default, it will load the image
-at 72 dpi. To load it at another resolution::
-
-    from PIL import Image
-
-    with Image.open("drawing.wmf") as im:
-        im.load(dpi=144)
-
-To add other read or write support, use
-:py:func:`PIL.WmfImagePlugin.register_handler` to register a WMF and EMF
-handler. ::
-
-    from typing import IO
-
-    from PIL import Image, ImageFile
-    from PIL import WmfImagePlugin
-
-
-    class WmfHandler(ImageFile.StubHandler):
-        def open(self, im: ImageFile.StubImageFile) -> None:
-            ...
-
-        def load(self, im: ImageFile.StubImageFile) -> Image.Image:
-            ...
-            return image
-
-        def save(self, im: Image.Image, fp: IO[bytes], filename: str) -> None:
-            ...
-
-
-    wmf_handler = WmfHandler()
-
-    WmfImagePlugin.register_handler(wmf_handler)
-
-    im = Image.open("sample.wmf")
+the palette, use the putpalette method.
 
 XPM
 ^^^
 
-Pillow reads X pixmap files (mode ``P``) with 256 colors or less.
+PIL reads X pixmap files (mode ``P``) with 256 colors or less.
 
-.. _xpm-opening:
-
-Opening
-~~~~~~~
-
-The :py:meth:`~PIL.Image.open` method sets the following
+The :py:meth:`~PIL.Image.Image.open` method sets the following
 :py:attr:`~PIL.Image.Image.info` properties:
 
 **transparency**
@@ -1564,110 +858,26 @@ Write-only formats
 PALM
 ^^^^
 
-Pillow provides write-only support for PALM pixmap files.
+PIL provides write-only support for PALM pixmap files.
 
 The format code is ``Palm``, the extension is ``.palm``.
 
 PDF
 ^^^
 
-Pillow can write PDF (Acrobat) images. Such images are written as binary PDF 1.4
-files. Different encoding methods are used, depending on the image mode.
+PIL can write PDF (Acrobat) images. Such images are written as binary PDF 1.1
+files, using either JPEG or HEX encoding depending on the image mode (and
+whether JPEG support is available or not).
 
-* 1 mode images are saved using TIFF encoding, or JPEG encoding if libtiff support is
-  unavailable
-* L, RGB and CMYK mode images use JPEG encoding
-* P mode images use HEX encoding
-* LA and RGBA mode images use JPEG2000 encoding
-
-.. _pdf-saving:
-
-Saving
-~~~~~~
-
-The :py:meth:`~PIL.Image.Image.save` method can take the following keyword arguments:
-
-**save_all**
-    If a multiframe image is used, by default, only the first image will be saved.
-    To save all frames, each frame to a separate page of the PDF, the ``save_all``
-    parameter must be present and set to ``True``.
-
-    .. versionadded:: 3.0.0
-
-**append_images**
-    A list of :py:class:`PIL.Image.Image` objects to append as additional pages. Each
-    of the images in the list can be single or multiframe images. The ``save_all``
-    parameter must be present and set to ``True`` in conjunction with
-    ``append_images``.
-
-    .. versionadded:: 4.2.0
-
-**append**
-    Set to True to append pages to an existing PDF file. If the file doesn't
-    exist, an :py:exc:`OSError` will be raised.
-
-    .. versionadded:: 5.1.0
-
-**resolution**
-    Image resolution in DPI. This, together with the number of pixels in the
-    image, will determine the physical dimensions of the page that will be
-    saved in the PDF.
-
-**dpi**
-    A tuple of ``(x_resolution, y_resolution)``, with inches as the resolution
-    unit. If both the ``resolution`` parameter and the ``dpi`` parameter are
-    present, ``resolution`` will be ignored.
-
-**title**
-    The document’s title. If not appending to an existing PDF file, this will
-    default to the filename.
-
-    .. versionadded:: 5.1.0
-
-**author**
-    The name of the person who created the document.
-
-    .. versionadded:: 5.1.0
-
-**subject**
-    The subject of the document.
-
-    .. versionadded:: 5.1.0
-
-**keywords**
-    Keywords associated with the document.
-
-    .. versionadded:: 5.1.0
-
-**creator**
-    If the document was converted to PDF from another format, the name of the
-    conforming product that created the original document from which it was
-    converted.
-
-    .. versionadded:: 5.1.0
-
-**producer**
-    If the document was converted to PDF from another format, the name of the
-    conforming product that converted it to PDF.
-
-    .. versionadded:: 5.1.0
-
-**creationDate**
-    The creation date of the document. If not appending to an existing PDF
-    file, this will default to the current time.
-
-    .. versionadded:: 5.3.0
-
-**modDate**
-    The modification date of the document. If not appending to an existing PDF
-    file, this will default to the current time.
-
-    .. versionadded:: 5.3.0
+When calling :py:meth:`~PIL.Image.Image.save`, if a multiframe image is used,
+by default, only the first image will be saved. To save all frames, each frame
+to a separate page of the PDF, the ``save_all`` parameter must be present and
+set to ``True``.
 
 XV Thumbnails
 ^^^^^^^^^^^^^
 
-Pillow can read XV thumbnail files.
+PIL can read XV thumbnail files.
 
 Identify-only formats
 ---------------------
@@ -1677,21 +887,31 @@ BUFR
 
 .. versionadded:: 1.1.3
 
-Pillow provides a stub driver for BUFR files.
+PIL provides a stub driver for BUFR files.
 
 To add read or write support to your application, use
 :py:func:`PIL.BufrStubImagePlugin.register_handler`.
+
+FITS
+^^^^
+
+.. versionadded:: 1.1.5
+
+PIL provides a stub driver for FITS files.
+
+To add read or write support to your application, use
+:py:func:`PIL.FitsStubImagePlugin.register_handler`.
 
 GRIB
 ^^^^
 
 .. versionadded:: 1.1.5
 
-Pillow provides a stub driver for GRIB files.
+PIL provides a stub driver for GRIB files.
 
 The driver requires the file to start with a GRIB header. If you have files
 with embedded GRIB data, or files with multiple GRIB fields, your application
-has to seek to the header before passing the file handle to Pillow.
+has to seek to the header before passing the file handle to PIL.
 
 To add read or write support to your application, use
 :py:func:`PIL.GribStubImagePlugin.register_handler`.
@@ -1701,7 +921,7 @@ HDF5
 
 .. versionadded:: 1.1.5
 
-Pillow provides a stub driver for HDF5 files.
+PIL provides a stub driver for HDF5 files.
 
 To add read or write support to your application, use
 :py:func:`PIL.Hdf5StubImagePlugin.register_handler`.
@@ -1709,4 +929,36 @@ To add read or write support to your application, use
 MPEG
 ^^^^
 
-Pillow identifies MPEG files.
+PIL identifies MPEG files.
+
+WMF
+^^^
+
+PIL can identify playable WMF files.
+
+In PIL 1.1.4 and earlier, the WMF driver provides some limited rendering
+support, but not enough to be useful for any real application.
+
+In PIL 1.1.5 and later, the WMF driver is a stub driver. To add WMF read or
+write support to your application, use
+:py:func:`PIL.WmfImagePlugin.register_handler` to register a WMF handler.
+
+::
+
+    from PIL import Image
+    from PIL import WmfImagePlugin
+
+    class WmfHandler:
+        def open(self, im):
+            ...
+        def load(self, im):
+            ...
+            return image
+        def save(self, im, fp, filename):
+            ...
+
+    wmf_handler = WmfHandler()
+
+    WmfImagePlugin.register_handler(wmf_handler)
+
+    im = Image.open("sample.wmf")

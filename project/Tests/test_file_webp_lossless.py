@@ -1,29 +1,41 @@
-from __future__ import annotations
-
-from pathlib import Path
-
-import pytest
+from helper import unittest, PillowTestCase, hopper
 
 from PIL import Image
 
-from .helper import assert_image_equal, hopper
+try:
+    from PIL import _webp
+except ImportError:
+    pass
+    # Skip in setUp()
 
-pytest.importorskip("PIL._webp", reason="WebP support not installed")
-RGB_MODE = "RGB"
 
+class TestFileWebpLossless(PillowTestCase):
 
-def test_write_lossless_rgb(tmp_path: Path) -> None:
-    temp_file = str(tmp_path / "temp.webp")
+    def setUp(self):
+        try:
+            from PIL import _webp
+        except:
+            self.skipTest('WebP support not installed')
 
-    hopper(RGB_MODE).save(temp_file, lossless=True)
+        if (_webp.WebPDecoderVersion() < 0x0200):
+            self.skipTest('lossless not included')
 
-    with Image.open(temp_file) as image:
+    def test_write_lossless_rgb(self):
+        temp_file = self.tempfile("temp.webp")
+
+        hopper("RGB").save(temp_file, lossless=True)
+
+        image = Image.open(temp_file)
         image.load()
 
-        assert image.mode == RGB_MODE
-        assert image.size == (128, 128)
-        assert image.format == "WEBP"
+        self.assertEqual(image.mode, "RGB")
+        self.assertEqual(image.size, (128, 128))
+        self.assertEqual(image.format, "WEBP")
         image.load()
         image.getdata()
 
-        assert_image_equal(image, hopper(RGB_MODE))
+        self.assert_image_equal(image, hopper("RGB"))
+
+
+if __name__ == '__main__':
+    unittest.main()

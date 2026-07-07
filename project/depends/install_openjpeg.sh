@@ -1,9 +1,9 @@
 #!/bin/bash
 # install openjpeg
 
-archive=openjpeg-2.5.2
+archive=openjpeg-2.2.0
 
-./download-and-extract.sh $archive https://raw.githubusercontent.com/python-pillow/pillow-depends/main/$archive.tar.gz
+./download-and-extract.sh $archive https://raw.githubusercontent.com/python-pillow/pillow-depends/master/$archive.tar.gz
 
 pushd $archive
 

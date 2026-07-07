@@ -1,12 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # install extra test images
 
-archive=test-images-main
+rm -r test_images
 
-./download-and-extract.sh $archive https://github.com/python-pillow/test-images/archive/main.tar.gz
+# Use SVN to just fetch a single git subdirectory
+svn checkout https://github.com/python-pillow/pillow-depends/trunk/test_images
 
-mv $archive/* ../Tests/images/
-
-# Cleanup old tarball and empty directory
-rm $archive.tar.gz
-rmdir $archive
+cp -r test_images/* ../Tests/images

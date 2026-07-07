@@ -1,8 +1,11 @@
-from __future__ import annotations
-
-from .helper import hopper
+from helper import unittest, PillowTestCase, hopper
 
 
-def test_sanity() -> None:
-    data = hopper().tobytes()
-    assert isinstance(data, bytes)
+class TestImageToBytes(PillowTestCase):
+
+    def test_sanity(self):
+        data = hopper().tobytes()
+        self.assertIsInstance(data, bytes)
+
+if __name__ == '__main__':
+    unittest.main()

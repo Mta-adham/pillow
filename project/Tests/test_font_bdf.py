@@ -1,21 +1,24 @@
-from __future__ import annotations
+from helper import unittest, PillowTestCase
 
-import pytest
-
-from PIL import BdfFontFile, FontFile
+from PIL import FontFile, BdfFontFile
 
 filename = "Tests/images/courB08.bdf"
 
 
-def test_sanity() -> None:
-    with open(filename, "rb") as test_file:
-        font = BdfFontFile.BdfFontFile(test_file)
+class TestFontBdf(PillowTestCase):
 
-    assert isinstance(font, FontFile.FontFile)
-    assert len([_f for _f in font.glyph if _f]) == 190
+    def test_sanity(self):
+
+        with open(filename, "rb") as test_file:
+            font = BdfFontFile.BdfFontFile(test_file)
+
+        self.assertIsInstance(font, FontFile.FontFile)
+        self.assertEqual(len([_f for _f in font.glyph if _f]), 190)
+
+    def test_invalid_file(self):
+        with open("Tests/images/flower.jpg", "rb") as fp:
+            self.assertRaises(SyntaxError, BdfFontFile.BdfFontFile, fp)
 
 
-def test_invalid_file() -> None:
-    with open("Tests/images/flower.jpg", "rb") as fp:
-        with pytest.raises(SyntaxError):
-            BdfFontFile.BdfFontFile(fp)
+if __name__ == '__main__':
+    unittest.main()

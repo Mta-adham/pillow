@@ -1,17 +1,15 @@
-from __future__ import annotations
-
-import pytest
+from helper import unittest, PillowTestCase, hopper
 
 from PIL import ImageWin
+import sys
 
-from .helper import hopper, is_win32
 
+class TestImageWin(PillowTestCase):
 
-class TestImageWin:
-    def test_sanity(self) -> None:
+    def test_sanity(self):
         dir(ImageWin)
 
-    def test_hdc(self) -> None:
+    def test_hdc(self):
         # Arrange
         dc = 50
 
@@ -20,9 +18,9 @@ class TestImageWin:
         dc2 = int(hdc)
 
         # Assert
-        assert dc2 == 50
+        self.assertEqual(dc2, 50)
 
-    def test_hwnd(self) -> None:
+    def test_hwnd(self):
         # Arrange
         wnd = 50
 
@@ -31,12 +29,13 @@ class TestImageWin:
         wnd2 = int(hwnd)
 
         # Assert
-        assert wnd2 == 50
+        self.assertEqual(wnd2, 50)
 
 
-@pytest.mark.skipif(not is_win32(), reason="Windows only")
-class TestImageWinDib:
-    def test_dib_image(self) -> None:
+@unittest.skipUnless(sys.platform.startswith('win32'), "Windows only")
+class TestImageWinDib(PillowTestCase):
+
+    def test_dib_image(self):
         # Arrange
         im = hopper()
 
@@ -44,9 +43,9 @@ class TestImageWinDib:
         dib = ImageWin.Dib(im)
 
         # Assert
-        assert dib.size == im.size
+        self.assertEqual(dib.size, im.size)
 
-    def test_dib_mode_string(self) -> None:
+    def test_dib_mode_string(self):
         # Arrange
         mode = "RGBA"
         size = (128, 128)
@@ -55,12 +54,9 @@ class TestImageWinDib:
         dib = ImageWin.Dib(mode, size)
 
         # Assert
-        assert dib.size == (128, 128)
+        self.assertEqual(dib.size, (128, 128))
 
-        with pytest.raises(ValueError):
-            ImageWin.Dib(mode)
-
-    def test_dib_paste(self) -> None:
+    def test_dib_paste(self):
         # Arrange
         im = hopper()
 
@@ -72,9 +68,9 @@ class TestImageWinDib:
         dib.paste(im)
 
         # Assert
-        assert dib.size == (128, 128)
+        self.assertEqual(dib.size, (128, 128))
 
-    def test_dib_paste_bbox(self) -> None:
+    def test_dib_paste_bbox(self):
         # Arrange
         im = hopper()
         bbox = (0, 0, 10, 10)
@@ -87,9 +83,9 @@ class TestImageWinDib:
         dib.paste(im, bbox)
 
         # Assert
-        assert dib.size == (128, 128)
+        self.assertEqual(dib.size, (128, 128))
 
-    def test_dib_frombytes_tobytes_roundtrip(self) -> None:
+    def test_dib_frombytes_tobytes_roundtrip(self):
         # Arrange
         # Make two different DIB images
         im = hopper()
@@ -100,16 +96,17 @@ class TestImageWinDib:
         dib2 = ImageWin.Dib(mode, size)
 
         # Confirm they're different
-        assert dib1.tobytes() != dib2.tobytes()
+        self.assertNotEqual(dib1.tobytes(), dib2.tobytes())
 
         # Act
         # Make one the same as the using tobytes()/frombytes()
         test_buffer = dib1.tobytes()
-        for datatype in ("bytes", "memoryview"):
-            if datatype == "memoryview":
-                test_buffer = memoryview(test_buffer)
-            dib2.frombytes(test_buffer)
+        dib2.frombytes(test_buffer)
 
-            # Assert
-            # Confirm they're the same
-            assert dib1.tobytes() == dib2.tobytes()
+        # Assert
+        # Confirm they're the same
+        self.assertEqual(dib1.tobytes(), dib2.tobytes())
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,10 +1,9 @@
-from __future__ import annotations
-
-import locale
-
-import pytest
+from __future__ import print_function
+from helper import unittest, PillowTestCase
 
 from PIL import Image
+
+import locale
 
 # ref https://github.com/python-pillow/Pillow/issues/272
 # on windows, in polish locale:
@@ -19,21 +18,21 @@ from PIL import Image
 # 7
 # 160
 
-# one of string.whitespace is not freely convertible into ascii.
+# one of string.whitespace is not freely convertable into ascii.
 
 path = "Tests/images/hopper.jpg"
 
 
-def test_sanity() -> None:
-    with Image.open(path):
-        pass
-    try:
-        locale.setlocale(locale.LC_ALL, "polish")
-    except locale.Error:
-        pytest.skip("Polish locale not available")
+class TestLocale(PillowTestCase):
 
-    try:
-        with Image.open(path):
-            pass
-    finally:
-        locale.setlocale(locale.LC_ALL, (None, None))
+    def test_sanity(self):
+        Image.open(path)
+        try:
+            locale.setlocale(locale.LC_ALL, "polish")
+        except:
+            unittest.skip('Polish locale not available')
+        Image.open(path)
+
+
+if __name__ == '__main__':
+    unittest.main()

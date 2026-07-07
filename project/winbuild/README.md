@@ -1,29 +1,18 @@
 Quick README
-------------
+------------ 
 
-For more extensive info, see the [Windows build instructions](build.rst).
+For more extensive info, see the windows build instructions `docs/build.rst`.
 
-* See [Current Windows Build/Testing process (Pillow#553)](https://github.com/python-pillow/Pillow/issues/553#issuecomment-37877416),
-  [Definitive docs for how to compile on Windows (matplotlib#1717)](https://github.com/matplotlib/matplotlib/issues/1717#issuecomment-13343859),
-  [Test Windows with GitHub Actions (Pillow#4084)](https://github.com/python-pillow/Pillow/pull/4084).
+* See https://github.com/python-pillow/Pillow/issues/553#issuecomment-37877416 and https://github.com/matplotlib/matplotlib/issues/1717#issuecomment-13343859 
 
-
-* Requires Microsoft Visual Studio 2017 or newer with C++ component.
-* Requires NASM for libjpeg-turbo, a required dependency when using this script.
-* Requires CMake 3.15 or newer (available as Visual Studio component).
-* Tested on Windows Server 2016 with Visual Studio 2017 Community, and Windows Server 2019 with Visual Studio 2022 Community (AppVeyor).
-* Tested on Windows Server 2022 with Visual Studio 2022 Enterprise (GitHub Actions).
-
-The following is a simplified version of the script used on AppVeyor:
-```
-set PYTHON=C:\Python39\bin
-cd /D C:\Pillow\winbuild
-%PYTHON%\python.exe build_prepare.py -v --depends=C:\pillow-depends
-build\build_dep_all.cmd
-cd ..
-%PYTHON%\python.exe -m pip install -v -C raqm=vendor -C fribidi=vendor .
-path C:\Pillow\winbuild\build\bin;%PATH%
-%PYTHON%\python.exe selftest.py
-%PYTHON%\python.exe -m pytest -vx --cov PIL --cov Tests --cov-report term --cov-report xml Tests
-%PYTHON%\python.exe -m pip wheel -v -C raqm=vendor -C fribidi=vendor .
-```
+*  Works best with Python 3.4, due to virtualenv and pip batteries included. Python3+ required for fetch command.
+*  Check config.py for virtual env paths, suffix for 64-bit releases. Defaults to `x64`, set `X64_EXT` to change.
+*  When running in CI with one Python per invocation, set the `PYTHON` env variable to the Python folder. (e.g. `PYTHON`=`c:\Python27\`) This overrides the matrix in config.py and will just build and test for the specific Python.
+* `python get_pythons.py` downloads all the Python releases, and their signatures. (Manually) Install in `c:\PythonXX[x64]\`.
+* `python build_dep.py` downloads and creates a build script for all the dependencies, in 32 and 64 bit versions, and with both compiler versions.
+* (in powershell) `build_deps.cmd` invokes the dependency build.
+* `python build.py --clean` makes Pillow for the matrix of Pythons.
+* `python test.py` runs the tests on Pillow in all the virtual envs.
+*  Currently working with zlib, libjpeg, freetype, and libtiff on Python 2.7, 3.3, and 3.4, both 32 and 64 bit, on a local win7 pro machine and appveyor.com
+* Webp is built, not detected.
+* LCMS, OpenJpeg and libimagequant are not building.

@@ -1,0 +1,22 @@
+name: Pillow-d8af3fc
+instance_id: python-pillow__Pillow-d8af3fc
+dataset_version: gso-bench/gso@test
+target:
+  image: slimshetty/gso:gso.eval.x86_64.python-pillow__pillow-d8af3fc
+  digest: sha256:aaef268cf3c6a9670d6ecbca6506f160be4925b1a25601f2dfee352989bd24eb
+git:
+  repo: python-pillow/Pillow
+  base_commit: d8af3fc23a730dd5e9a6e556263e7be7d8de1c7e^
+runner:
+  timeout_seconds: 1800
+  timing_iterations: 20
+api: Image.split
+files:
+- PIL/FliImagePlugin.py
+- PIL/Image.py
+- PIL/ImageEnhance.py
+- PIL/ImageFont.py
+- PIL/JpegImagePlugin.py
+- PIL/PyAccess.py
+- PIL/SgiImagePlugin.py
+- setup.py

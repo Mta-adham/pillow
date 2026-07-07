@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
-from __future__ import annotations
-
-import sys
+#!/usr/bin/env python
 
 from PIL import Image
+import sys
+
 
 if sys.maxsize < 2**32:
-    im = Image.new("L", (999999, 999999), 0)
+    im = Image.new('L', (999999, 999999), 0)

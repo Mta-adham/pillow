@@ -1,55 +1,80 @@
-from __future__ import annotations
-
-import warnings
-
-import pytest
+from helper import unittest, PillowTestCase, hopper
 
 from PIL import ImageQt
 
-from .helper import assert_image_similar, hopper
-
-pytestmark = pytest.mark.skipif(
-    not ImageQt.qt_is_installed, reason="Qt bindings are not installed"
-)
 
 if ImageQt.qt_is_installed:
     from PIL.ImageQt import qRgba
 
-
-def test_rgb() -> None:
-    # from https://doc.qt.io/archives/qt-4.8/qcolor.html
-    # typedef QRgb
-    # An ARGB quadruplet on the format #AARRGGBB,
-    # equivalent to an unsigned int.
-    if ImageQt.qt_version == "6":
-        from PyQt6.QtGui import qRgb
-    elif ImageQt.qt_version == "side6":
-        from PySide6.QtGui import qRgb
-
-    assert qRgb(0, 0, 0) == qRgba(0, 0, 0, 255)
-
-    def checkrgb(r: int, g: int, b: int) -> None:
-        val = ImageQt.rgb(r, g, b)
-        val = val % 2**24  # drop the alpha
-        assert val >> 16 == r
-        assert ((val >> 8) % 2**8) == g
-        assert val % 2**8 == b
-
-    checkrgb(0, 0, 0)
-    checkrgb(255, 0, 0)
-    checkrgb(0, 255, 0)
-    checkrgb(0, 0, 255)
+    def skip_if_qt_is_not_installed(_):
+        pass
+else:
+    def skip_if_qt_is_not_installed(test_case):
+        test_case.skipTest('Qt bindings are not installed')
 
 
-@pytest.mark.parametrize("mode", ("1", "RGB", "RGBA", "L", "P", "I;16"))
-def test_image(mode: str) -> None:
-    im = hopper(mode)
-    roundtripped_im = ImageQt.fromqimage(ImageQt.ImageQt(im))
-    if mode not in ("RGB", "RGBA"):
-        im = im.convert("RGB")
-    assert_image_similar(roundtripped_im, im, 1)
+class PillowQtTestCase(object):
+
+    def setUp(self):
+        skip_if_qt_is_not_installed(self)
+
+    def tearDown(self):
+        pass
 
 
-def test_closed_file() -> None:
-    with warnings.catch_warnings():
-        ImageQt.ImageQt("Tests/images/hopper.gif")
+class PillowQPixmapTestCase(PillowQtTestCase):
+
+    def setUp(self):
+        PillowQtTestCase.setUp(self)
+        try:
+            if ImageQt.qt_version == '5':
+                from PyQt5.QtGui import QGuiApplication
+            elif ImageQt.qt_version == '4':
+                from PyQt4.QtGui import QGuiApplication
+            elif ImageQt.qt_version == 'side':
+                from PySide.QtGui import QGuiApplication
+        except ImportError:
+            self.skipTest('QGuiApplication not installed')
+
+        self.app = QGuiApplication([])
+
+    def tearDown(self):
+        PillowQtTestCase.tearDown(self)
+        self.app.quit()
+
+
+class TestImageQt(PillowQtTestCase, PillowTestCase):
+
+    def test_rgb(self):
+        # from https://doc.qt.io/qt-4.8/qcolor.html
+        # typedef QRgb
+        # An ARGB quadruplet on the format #AARRGGBB,
+        # equivalent to an unsigned int.
+        if ImageQt.qt_version == '5':
+            from PyQt5.QtGui import qRgb
+        elif ImageQt.qt_version == '4':
+            from PyQt4.QtGui import qRgb
+        elif ImageQt.qt_version == 'side':
+            from PySide.QtGui import qRgb
+
+        self.assertEqual(qRgb(0, 0, 0), qRgba(0, 0, 0, 255))
+
+        def checkrgb(r, g, b):
+            val = ImageQt.rgb(r, g, b)
+            val = val % 2**24  # drop the alpha
+            self.assertEqual(val >> 16, r)
+            self.assertEqual(((val >> 8) % 2**8), g)
+            self.assertEqual(val % 2**8, b)
+
+        checkrgb(0, 0, 0)
+        checkrgb(255, 0, 0)
+        checkrgb(0, 255, 0)
+        checkrgb(0, 0, 255)
+
+    def test_image(self):
+        for mode in ('1', 'RGB', 'RGBA', 'L', 'P'):
+            ImageQt.ImageQt(hopper(mode))
+
+
+if __name__ == '__main__':
+    unittest.main()

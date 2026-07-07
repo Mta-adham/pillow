@@ -1,36 +1,26 @@
 .. py:module:: PIL.ImageFont
 .. py:currentmodule:: PIL.ImageFont
 
-:py:mod:`~PIL.ImageFont` Module
-===============================
+:py:mod:`ImageFont` Module
+==========================
 
-The :py:mod:`~PIL.ImageFont` module defines a class with the same name. Instances of
+The :py:mod:`ImageFont` module defines a class with the same name. Instances of
 this class store bitmap fonts, and are used with the
-:py:meth:`PIL.ImageDraw.ImageDraw.text` method.
+:py:meth:`PIL.ImageDraw.Draw.text` method.
 
-PIL uses its own font file format to store bitmap fonts, limited to 256 characters. You can use
-`pilfont.py <https://github.com/python-pillow/pillow-scripts/blob/main/Scripts/pilfont.py>`_
-from :pypi:`pillow-scripts` to convert BDF and
-PCF font descriptors (X window font formats) to this format.
+PIL uses its own font file format to store bitmap fonts. You can use the
+:command:`pilfont` utility to convert BDF and PCF font descriptors (X window
+font formats) to this format.
 
 Starting with version 1.1.4, PIL can be configured to support TrueType and
 OpenType fonts (as well as other font formats supported by the FreeType
 library). For earlier versions, TrueType support is only available as part of
-the imToolkit package.
-
-.. warning::
-    To protect against potential DOS attacks when using arbitrary strings as
-    text input, Pillow will raise a :py:exc:`ValueError` if the number of characters
-    is over a certain limit, :py:data:`MAX_STRING_LENGTH`.
-
-    This threshold can be changed by setting
-    :py:data:`MAX_STRING_LENGTH`. It can be disabled by setting
-    ``ImageFont.MAX_STRING_LENGTH = None``.
+the imToolkit package
 
 Example
 -------
 
-::
+.. code-block:: python
 
     from PIL import ImageFont, ImageDraw
 
@@ -53,49 +43,48 @@ Functions
 .. autofunction:: PIL.ImageFont.load_path
 .. autofunction:: PIL.ImageFont.truetype
 .. autofunction:: PIL.ImageFont.load_default
-.. autofunction:: PIL.ImageFont.load_default_imagefont
 
 Methods
 -------
 
-.. autoclass:: PIL.ImageFont.ImageFont
-    :members:
+.. py:method:: PIL.ImageFont.ImageFont.getsize(text)
 
-.. autoclass:: PIL.ImageFont.FreeTypeFont
-    :members:
+    :return: (width, height)
 
-.. autoclass:: PIL.ImageFont.TransposedFont
-    :members:
-    :undoc-members:
+.. py:method:: PIL.ImageFont.ImageFont.getmask(text, mode='', direction=None, features=[])
 
-Constants
----------
+    Create a bitmap for the text.
 
-.. class:: Layout
+    If the font uses antialiasing, the bitmap should have mode “L” and use a
+    maximum value of 255. Otherwise, it should have mode “1”.
 
-    .. py:attribute:: BASIC
+    :param text: Text to render.
+    :param mode: Used by some graphics drivers to indicate what mode the
+                 driver prefers; if empty, the renderer may return either
+                 mode. Note that the mode is always a string, to simplify
+                 C-level implementations.
 
-        Use basic text layout for TrueType font.
-        Advanced features such as text direction are not supported.
+                 .. versionadded:: 1.1.5
 
-    .. py:attribute:: RAQM
+    :param direction: Direction of the text. It can be 'rtl' (right to
+                      left), 'ltr' (left to right), 'ttb' (top to
+                      bottom) or 'btt' (bottom to top). Requires
+                      libraqm.
 
-        Use Raqm text layout for TrueType font.
-        Advanced features are supported.
+                      .. versionadded:: 4.2.0
 
-        Requires Raqm, you can check support using
-        :py:func:`PIL.features.check_feature` with ``feature="raqm"``.
+    :param features: A list of OpenType font features to be used during text
+                     layout. This is usually used to turn on optional
+                     font features that are not enabled by default,
+                     for example 'dlig' or 'ss01', but can be also
+                     used to turn off default font features for
+                     example '-liga' to disable ligatures or '-kern'
+                     to disable kerning.  To get all supported
+                     features, see
+                     https://www.microsoft.com/typography/otspec/featurelist.htm
+                     Requires libraqm.
 
-.. data:: MAX_STRING_LENGTH
+                     .. versionadded:: 4.2.0
 
-    Set to 1,000,000, to protect against potential DOS attacks. Pillow will
-    raise a :py:exc:`ValueError` if the number of characters is over this limit. The
-    check can be disabled by setting ``ImageFont.MAX_STRING_LENGTH = None``.
-
-Dictionaries
-------------
-
-.. autoclass:: Axis
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :return: An internal PIL storage memory instance as defined by the
+             :py:mod:`PIL.Image.core` interface module.

@@ -1,15 +1,49 @@
 Building Pillow on Windows
 ==========================
 
-.. note:: For most people, the `installation instructions
-          <../docs/installation.rst#windows-installation>`_ should
-          be sufficient.
+.. note:: For most people, the :doc:`installation instructions
+          <installation>` should be sufficient
 
-This page describes the steps necessary to build Pillow using the same
-scripts used on GitHub Actions and AppVeyor CIs.
+This page will describe a build setup to build Pillow against the
+supported Python versions in 32 and 64-bit modes, using freely
+available Microsoft compilers.  This has been developed and tested
+against 64-bit Windows 7 Professional and Windows Server 2012
+64-bit version on Amazon EC2.
 
 Prerequisites
 -------------
+
+Extra Build Helpers
+^^^^^^^^^^^^^^^^^^^
+
+* Powershell (available by default on Windows Server)
+* GitHub client (provides git+bash shell)
+
+Optional:
+* GPG (for checking signatures)  (UNDONE -- Python signature checking)
+
+
+Pythons
+^^^^^^^
+
+The build routines expect Python to be installed at C:\PythonXX for
+32-bit versions or C:\PythonXXx64 for the 64-bit versions.
+
+Download Python 3.4, install it, and add it to the path. This is the
+Python that we will use to bootstrap the build process. (The download
+routines are using 3 features, and installing 3.4 gives us pip and
+virtualenv as well, reducing the number of packages that we need to
+install.)
+
+Download the rest of the Pythons by opening a command window, changing
+to the `winbuild` directory, and running `python
+get_pythons.py`.
+
+UNDONE -- gpg verify the signatures (note that we can download from
+https)
+
+Run each installer and set the proper path to the installation. Don't
+set any of them as the default Python, or add them to the path.
 
 
 Compilers
@@ -17,111 +51,44 @@ Compilers
 
 Download and install:
 
-* `Microsoft Visual Studio 2017 or newer or Build Tools for Visual Studio 2017 or newer
-  <https://visualstudio.microsoft.com/downloads/>`_
-  (MSVC C++ build tools, and any Windows SDK version required)
+* `Microsoft Windows SDK for Windows 7 and .NET Framework 3.5
+  SP1 <https://www.microsoft.com/en-us/download/details.aspx?id=3138>`_
 
-* `CMake 3.15 or newer <https://cmake.org/download/>`_
-  (also available as Visual Studio component C++ CMake tools for Windows)
+* `Microsoft Windows SDK for Windows 7 and .NET Framework
+  4 <https://www.microsoft.com/en-us/download/details.aspx?id=8279>`_
 
-* `Ninja <https://ninja-build.org/>`_
-  (optional, use ``--nmake`` if not available; bundled in Visual Studio CMake component)
+* `CMake-2.8.10.2-win32-x86.exe <https://cmake.org/download/>`_
 
-* x86/AMD64: `Netwide Assembler (NASM) <https://www.nasm.us/pub/nasm/releasebuilds/?C=M;O=D>`_
-
-Any version of Visual Studio 2017 or newer should be supported,
-including Visual Studio 2017 Community, or Build Tools for Visual Studio 2019.
-
-Paths to CMake (if standalone) and NASM must be added to the ``PATH`` environment variable.
-Visual Studio is found automatically with ``vswhere.exe``.
-
-Build configuration
--------------------
-
-Run ``build_prepare.py`` to configure the build::
-
-    usage: winbuild\build_prepare.py [-h] [-v] [-d PILLOW_BUILD]
-                                     [--depends PILLOW_DEPS]
-                                     [--architecture {x86,AMD64,ARM64}] [--nmake]
-                                     [--no-imagequant] [--no-fribidi]
-
-    Download and generate build scripts for Pillow dependencies.
-
-    options:
-      -h, --help            show this help message and exit
-      -v, --verbose         print generated scripts
-      -d PILLOW_BUILD, --dir PILLOW_BUILD, --build-dir PILLOW_BUILD
-                            build directory (default: 'winbuild\build')
-      --depends PILLOW_DEPS
-                            directory used to store cached dependencies (default:
-                            'winbuild\depends')
-      --architecture {x86,AMD64,ARM64}
-                            build architecture (default: same as host Python)
-      --nmake               build dependencies using NMake instead of Ninja
-      --no-imagequant       skip GPL-licensed optional dependency libimagequant
-      --no-fribidi, --no-raqm
-                            skip LGPL-licensed optional dependency FriBiDi
-
-    Arguments can also be supplied using the environment variables PILLOW_BUILD,
-    PILLOW_DEPS, ARCHITECTURE. See winbuild\build.rst for more information.
-
-**Warning:** The build directory is wiped when ``build_prepare.py`` is run.
+The samples and the .NET SDK portions aren't required, just the
+compilers and other tools. UNDONE -- check exact wording.
 
 Dependencies
 ------------
 
-Dependencies will be automatically downloaded by ``build_prepare.py``.
-By default, downloaded dependencies are stored in ``winbuild\depends``;
-use the ``--depends`` argument or ``PILLOW_DEPS`` environment variable
-to override this location.
+The script 'build_dep.py' downloads and builds the dependencies.  Open
+a command window, change directory into `winbuild` and run `python
+build_dep.py`.
 
-To build all dependencies, run ``winbuild\build\build_dep_all.cmd``,
-or run the individual scripts in order to build each dependency separately.
+This will download libjpeg, libtiff, libz, and freetype. It will then
+compile 32 and 64-bit versions of the libraries, with both versions of
+the compilers.
+
+UNDONE -- lcms fails.
+UNDONE -- webp, jpeg2k not recognized
 
 Building Pillow
 ---------------
 
-Once the dependencies are built, make sure the required environment variables
-are set by running ``winbuild\build\build_env.cmd`` and install Pillow with pip::
+Once the dependencies are built, run `python build.py --clean` to
+build and install Pillow in virtualenvs for each python
+build. `build.py --dist` will build Windows installers instead of
+installing into virtualenvs.
 
-    winbuild\build\build_env.cmd
-    python.exe -m pip install -v -C raqm=vendor -C fribidi=vendor .
-
-You can also install Pillow in `editable mode`_::
-
-    winbuild\build\build_env.cmd
-    python.exe -m pip install -v -C raqm=vendor -C fribidi=vendor -e .
-
-To build a binary wheel instead, run::
-
-    winbuild\build\build_env.cmd
-    python.exe -m pip wheel -v -C raqm=vendor -C fribidi=vendor .
-
-.. _editable mode: https://setuptools.pypa.io/en/stable/userguide/development_mode.html
+UNDONE -- suppressed output, what about failures.
 
 Testing Pillow
 --------------
 
-Some binary dependencies (e.g. ``fribidi.dll``) will be stored in the
-``winbuild\build\bin`` directory; this directory should be added to ``PATH``
-before running tests.
+Build and install Pillow, then run `python test.py` from the
+`winbuild` directory.
 
-Build and install Pillow, then run ``python3 -m pytest`` from the root Pillow
-directory.
-
-Example
--------
-
-The following is a simplified version of the script used on AppVeyor::
-
-    set PYTHON=C:\Python39\bin
-    cd /D C:\Pillow\winbuild
-    %PYTHON%\python.exe build_prepare.py -v --depends C:\pillow-depends
-    build\build_dep_all.cmd
-    build\build_env.cmd
-    cd ..
-    %PYTHON%\python.exe -m pip install -v -C raqm=vendor -C fribidi=vendor .
-    path C:\Pillow\winbuild\build\bin;%PATH%
-    %PYTHON%\python.exe selftest.py
-    %PYTHON%\python.exe -m pytest -vx --cov PIL --cov Tests --cov-report term --cov-report xml Tests
-    %PYTHON%\python.exe -m pip wheel -v -C raqm=vendor -C fribidi=vendor .

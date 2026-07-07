@@ -1,75 +1,61 @@
-from __future__ import annotations
+from helper import unittest, PillowTestCase, hopper
 
-import pytest
+from PIL import Image, ImagePalette, MicImagePlugin
 
-from PIL import Image, ImagePalette
-
-from .helper import assert_image_similar, hopper, skip_unless_feature
-
-MicImagePlugin = pytest.importorskip(
-    "PIL.MicImagePlugin", reason="olefile not installed"
-)
-pytestmark = skip_unless_feature("libtiff")
 TEST_FILE = "Tests/images/hopper.mic"
 
 
-def test_sanity() -> None:
-    with Image.open(TEST_FILE) as im:
+class TestFileMic(PillowTestCase):
+
+    def test_sanity(self):
+        im = Image.open(TEST_FILE)
         im.load()
-        assert im.mode == "RGBA"
-        assert im.size == (128, 128)
-        assert im.format == "MIC"
+        self.assertEqual(im.mode, "RGBA")
+        self.assertEqual(im.size, (128, 128))
+        self.assertEqual(im.format, "MIC")
 
         # Adjust for the gamma of 2.2 encoded into the file
-        lut = ImagePalette.make_gamma_lut(1 / 2.2)
-        im = Image.merge("RGBA", [chan.point(lut) for chan in im.split()])
+        lut = ImagePalette.make_gamma_lut(1/2.2)
+        im = Image.merge('RGBA', [chan.point(lut) for chan in im.split()])
 
         im2 = hopper("RGBA")
-        assert_image_similar(im, im2, 10)
+        self.assert_image_similar(im, im2, 10)
 
+    def test_n_frames(self):
+        im = Image.open(TEST_FILE)
 
-def test_n_frames() -> None:
-    with Image.open(TEST_FILE) as im:
-        assert im.n_frames == 1
+        self.assertEqual(im.n_frames, 1)
 
+    def test_is_animated(self):
+        im = Image.open(TEST_FILE)
 
-def test_is_animated() -> None:
-    with Image.open(TEST_FILE) as im:
-        assert not im.is_animated
+        self.assertFalse(im.is_animated)
 
+    def test_tell(self):
+        im = Image.open(TEST_FILE)
 
-def test_tell() -> None:
-    with Image.open(TEST_FILE) as im:
-        assert im.tell() == 0
+        self.assertEqual(im.tell(), 0)
 
+    def test_seek(self):
+        im = Image.open(TEST_FILE)
 
-def test_seek() -> None:
-    with Image.open(TEST_FILE) as im:
         im.seek(0)
-        assert im.tell() == 0
+        self.assertEqual(im.tell(), 0)
 
-        with pytest.raises(EOFError):
-            im.seek(99)
-        assert im.tell() == 0
+        self.assertRaises(EOFError, im.seek, 99)
+        self.assertEqual(im.tell(), 0)
+
+    def test_invalid_file(self):
+        # Test an invalid OLE file
+        invalid_file = "Tests/images/flower.jpg"
+        self.assertRaises(SyntaxError,
+                          MicImagePlugin.MicImageFile, invalid_file)
+
+        # Test a valid OLE file, but not a MIC file
+        ole_file = "Tests/images/test-ole-file.doc"
+        self.assertRaises(SyntaxError,
+                          MicImagePlugin.MicImageFile, ole_file)
 
 
-def test_close() -> None:
-    with Image.open(TEST_FILE) as im:
-        pass
-    assert im.ole.fp.closed
-
-    im = Image.open(TEST_FILE)
-    im.close()
-    assert im.ole.fp.closed
-
-
-def test_invalid_file() -> None:
-    # Test an invalid OLE file
-    invalid_file = "Tests/images/flower.jpg"
-    with pytest.raises(SyntaxError):
-        MicImagePlugin.MicImageFile(invalid_file)
-
-    # Test a valid OLE file, but not a MIC file
-    ole_file = "Tests/images/test-ole-file.doc"
-    with pytest.raises(SyntaxError):
-        MicImagePlugin.MicImageFile(ole_file)
+if __name__ == '__main__':
+    unittest.main()

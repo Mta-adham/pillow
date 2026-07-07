@@ -1,62 +1,65 @@
-from __future__ import annotations
+from helper import unittest, PillowTestCase, hopper
 
-from pathlib import Path
-
-import pytest
-
-from PIL import Image, features
-
-from .helper import assert_image_equal, hopper
+from PIL import Image
 
 
-def test_split() -> None:
-    def split(mode: str) -> list[tuple[str, int, int]]:
-        layers = hopper(mode).split()
-        return [(i.mode, i.size[0], i.size[1]) for i in layers]
+class TestImageSplit(PillowTestCase):
 
-    assert split("1") == [("1", 128, 128)]
-    assert split("L") == [("L", 128, 128)]
-    assert split("I") == [("I", 128, 128)]
-    assert split("F") == [("F", 128, 128)]
-    assert split("P") == [("P", 128, 128)]
-    assert split("RGB") == [("L", 128, 128), ("L", 128, 128), ("L", 128, 128)]
-    assert split("RGBA") == [
-        ("L", 128, 128),
-        ("L", 128, 128),
-        ("L", 128, 128),
-        ("L", 128, 128),
-    ]
-    assert split("CMYK") == [
-        ("L", 128, 128),
-        ("L", 128, 128),
-        ("L", 128, 128),
-        ("L", 128, 128),
-    ]
-    assert split("YCbCr") == [("L", 128, 128), ("L", 128, 128), ("L", 128, 128)]
+    def test_split(self):
+        def split(mode):
+            layers = hopper(mode).split()
+            return [(i.mode, i.size[0], i.size[1]) for i in layers]
+        self.assertEqual(split("1"), [('1', 128, 128)])
+        self.assertEqual(split("L"), [('L', 128, 128)])
+        self.assertEqual(split("I"), [('I', 128, 128)])
+        self.assertEqual(split("F"), [('F', 128, 128)])
+        self.assertEqual(split("P"), [('P', 128, 128)])
+        self.assertEqual(
+            split("RGB"), [('L', 128, 128), ('L', 128, 128), ('L', 128, 128)])
+        self.assertEqual(
+            split("RGBA"),
+            [('L', 128, 128), ('L', 128, 128),
+                ('L', 128, 128), ('L', 128, 128)])
+        self.assertEqual(
+            split("CMYK"),
+            [('L', 128, 128), ('L', 128, 128),
+                ('L', 128, 128), ('L', 128, 128)])
+        self.assertEqual(
+            split("YCbCr"),
+            [('L', 128, 128), ('L', 128, 128), ('L', 128, 128)])
 
+    def test_split_merge(self):
+        def split_merge(mode):
+            return Image.merge(mode, hopper(mode).split())
+        self.assert_image_equal(hopper("1"), split_merge("1"))
+        self.assert_image_equal(hopper("L"), split_merge("L"))
+        self.assert_image_equal(hopper("I"), split_merge("I"))
+        self.assert_image_equal(hopper("F"), split_merge("F"))
+        self.assert_image_equal(hopper("P"), split_merge("P"))
+        self.assert_image_equal(hopper("RGB"), split_merge("RGB"))
+        self.assert_image_equal(hopper("RGBA"), split_merge("RGBA"))
+        self.assert_image_equal(hopper("CMYK"), split_merge("CMYK"))
+        self.assert_image_equal(hopper("YCbCr"), split_merge("YCbCr"))
 
-@pytest.mark.parametrize(
-    "mode", ("1", "L", "I", "F", "P", "RGB", "RGBA", "CMYK", "YCbCr")
-)
-def test_split_merge(mode: str) -> None:
-    expected = Image.merge(mode, hopper(mode).split())
-    assert_image_equal(hopper(mode), expected)
+    def test_split_open(self):
+        codecs = dir(Image.core)
 
+        if 'zip_encoder' in codecs:
+            test_file = self.tempfile("temp.png")
+        else:
+            test_file = self.tempfile("temp.pcx")
 
-def test_split_open(tmp_path: Path) -> None:
-    if features.check("zlib"):
-        test_file = str(tmp_path / "temp.png")
-    else:
-        test_file = str(tmp_path / "temp.pcx")
-
-    def split_open(mode: str) -> int:
-        hopper(mode).save(test_file)
-        with Image.open(test_file) as im:
+        def split_open(mode):
+            hopper(mode).save(test_file)
+            im = Image.open(test_file)
             return len(im.split())
+        self.assertEqual(split_open("1"), 1)
+        self.assertEqual(split_open("L"), 1)
+        self.assertEqual(split_open("P"), 1)
+        self.assertEqual(split_open("RGB"), 3)
+        if 'zip_encoder' in codecs:
+            self.assertEqual(split_open("RGBA"), 4)
 
-    assert split_open("1") == 1
-    assert split_open("L") == 1
-    assert split_open("P") == 1
-    assert split_open("RGB") == 3
-    if features.check("zlib"):
-        assert split_open("RGBA") == 4
+
+if __name__ == '__main__':
+    unittest.main()

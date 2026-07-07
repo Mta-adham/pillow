@@ -1,3 +1,4 @@
+
 include *.c
 include *.h
 include *.in
@@ -5,30 +6,28 @@ include *.md
 include *.py
 include *.rst
 include *.sh
-include *.toml
 include *.txt
-include *.yaml
-include .flake8
 include LICENSE
 include Makefile
-include tox.ini
+graft Scripts
 graft Tests
-graft src
+graft PIL
+graft Tk
+graft libImaging
 graft depends
 graft winbuild
 graft docs
-graft _custom_build
+prune docs/_static
 
 # build/src control detritus
-exclude .appveyor.yml
-exclude .clang-format
 exclude .coveragerc
 exclude .editorconfig
-exclude .readthedocs.yml
-exclude codecov.yml
-exclude renovate.json
+exclude .landscape.yaml
+exclude .travis
+exclude .travis/*
+exclude appveyor.yml
+exclude build_children.sh
+exclude tox.ini
 global-exclude .git*
 global-exclude *.pyc
 global-exclude *.so
-prune .ci
-prune wheels

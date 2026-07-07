@@ -3,20 +3,17 @@ A Pillow loader for .dds files (S3TC-compressed aka DXTC)
 Jerome Leclanche <jerome@leclan.ch>
 
 Documentation:
-  https://web.archive.org/web/20170802060935/http://oss.sgi.com/projects/ogl-sample/registry/EXT/texture_compression_s3tc.txt
+  http://oss.sgi.com/projects/ogl-sample/registry/EXT/texture_compression_s3tc.txt
 
 The contents of this file are hereby released in the public domain (CC0)
 Full text of the CC0 license:
   https://creativecommons.org/publicdomain/zero/1.0/
 """
 
-from __future__ import annotations
-
 import struct
 from io import BytesIO
-from typing import IO
-
 from PIL import Image, ImageFile
+
 
 # Magic ("DDS ")
 DDS_MAGIC = 0x20534444
@@ -64,7 +61,8 @@ DDS_LUMINANCEA = DDPF_LUMINANCE | DDPF_ALPHAPIXELS
 DDS_ALPHA = DDPF_ALPHA
 DDS_PAL8 = DDPF_PALETTEINDEXED8
 
-DDS_HEADER_FLAGS_TEXTURE = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT
+DDS_HEADER_FLAGS_TEXTURE = (DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH |
+                            DDSD_PIXELFORMAT)
 DDS_HEADER_FLAGS_MIPMAP = DDSD_MIPMAPCOUNT
 DDS_HEADER_FLAGS_VOLUME = DDSD_DEPTH
 DDS_HEADER_FLAGS_PITCH = DDSD_PITCH
@@ -95,26 +93,26 @@ DXT3_FOURCC = 0x33545844
 DXT5_FOURCC = 0x35545844
 
 
-def _decode565(bits: int) -> tuple[int, int, int]:
-    a = ((bits >> 11) & 0x1F) << 3
-    b = ((bits >> 5) & 0x3F) << 2
-    c = (bits & 0x1F) << 3
+def _decode565(bits):
+    a = ((bits >> 11) & 0x1f) << 3
+    b = ((bits >> 5) & 0x3f) << 2
+    c = (bits & 0x1f) << 3
     return a, b, c
 
 
-def _c2a(a: int, b: int) -> int:
+def _c2a(a, b):
     return (2 * a + b) // 3
 
 
-def _c2b(a: int, b: int) -> int:
+def _c2b(a, b):
     return (a + b) // 2
 
 
-def _c3(a: int, b: int) -> int:
+def _c3(a, b):
     return (2 * b + a) // 3
 
 
-def _dxt1(data: IO[bytes], width: int, height: int) -> bytes:
+def _dxt1(data, width, height):
     # TODO implement this function as pixel format in decode.c
     ret = bytearray(4 * width * height)
 
@@ -147,12 +145,12 @@ def _dxt1(data: IO[bytes], width: int, height: int) -> bytes:
                             r, g, b = 0, 0, 0
 
                     idx = 4 * ((y + j) * width + x + i)
-                    ret[idx : idx + 4] = struct.pack("4B", r, g, b, 255)
+                    ret[idx:idx+4] = struct.pack('4B', r, g, b, 255)
 
     return bytes(ret)
 
 
-def _dxtc_alpha(a0: int, a1: int, ac0: int, ac1: int, ai: int) -> int:
+def _dxtc_alpha(a0, a1, ac0, ac1, ai):
     if ai <= 12:
         ac = (ac0 >> ai) & 7
     elif ai == 15:
@@ -169,20 +167,21 @@ def _dxtc_alpha(a0: int, a1: int, ac0: int, ac1: int, ai: int) -> int:
     elif ac == 6:
         alpha = 0
     elif ac == 7:
-        alpha = 0xFF
+        alpha = 0xff
     else:
         alpha = ((6 - ac) * a0 + (ac - 1) * a1) // 5
 
     return alpha
 
 
-def _dxt5(data: IO[bytes], width: int, height: int) -> bytes:
+def _dxt5(data, width, height):
     # TODO implement this function as pixel format in decode.c
     ret = bytearray(4 * width * height)
 
     for y in range(0, height, 4):
         for x in range(0, width, 4):
-            a0, a1, ac0, ac1, c0, c1, code = struct.unpack("<2BHI2HI", data.read(16))
+            a0, a1, ac0, ac1, c0, c1, code = struct.unpack("<2BHI2HI",
+                                                           data.read(16))
 
             r0, g0, b0 = _decode565(c0)
             r1, g1, b1 = _decode565(c1)
@@ -203,7 +202,7 @@ def _dxt5(data: IO[bytes], width: int, height: int) -> bytes:
                         r, g, b = _c3(r0, r1), _c3(g0, g1), _c3(b0, b1)
 
                     idx = 4 * ((y + j) * width + x + i)
-                    ret[idx : idx + 4] = struct.pack("4B", r, g, b, alpha)
+                    ret[idx:idx+4] = struct.pack('4B', r, g, b, alpha)
 
     return bytes(ret)
 
@@ -212,81 +211,73 @@ class DdsImageFile(ImageFile.ImageFile):
     format = "DDS"
     format_description = "DirectDraw Surface"
 
-    def _open(self) -> None:
-        if not _accept(self.fp.read(4)):
-            msg = "not a DDS file"
-            raise SyntaxError(msg)
-        (header_size,) = struct.unpack("<I", self.fp.read(4))
+    def _open(self):
+        magic, header_size = struct.unpack("<II", self.fp.read(8))
         if header_size != 124:
-            msg = f"Unsupported header size {repr(header_size)}"
-            raise OSError(msg)
+            raise IOError("Unsupported header size %r" % (header_size))
         header_bytes = self.fp.read(header_size - 4)
         if len(header_bytes) != 120:
-            msg = f"Incomplete header: {len(header_bytes)} bytes"
-            raise OSError(msg)
+            raise IOError("Incomplete header: %s bytes" % len(header_bytes))
         header = BytesIO(header_bytes)
 
         flags, height, width = struct.unpack("<3I", header.read(12))
-        self._size = (width, height)
-        self._mode = "RGBA"
+        self.size = (width, height)
+        self.mode = "RGBA"
 
         pitch, depth, mipmaps = struct.unpack("<3I", header.read(12))
-        struct.unpack("<11I", header.read(44))  # reserved
+        reserved = struct.unpack("<11I", header.read(44))
 
         # pixel format
         pfsize, pfflags = struct.unpack("<2I", header.read(8))
         fourcc = header.read(4)
-        bitcount, rmask, gmask, bmask, amask = struct.unpack("<5I", header.read(20))
+        bitcount, rmask, gmask, bmask, amask = struct.unpack("<5I",
+                                                             header.read(20))
 
         if fourcc == b"DXT1":
             self.decoder = "DXT1"
+            codec = _dxt1
         elif fourcc == b"DXT5":
             self.decoder = "DXT5"
+            codec = _dxt5
         else:
-            msg = f"Unimplemented pixel format {repr(fourcc)}"
-            raise NotImplementedError(msg)
+            raise NotImplementedError("Unimplemented pixel format %r" % fourcc)
 
         self.tile = [
-            ImageFile._Tile(self.decoder, (0, 0) + self.size, 0, (self.mode, 0, 1))
+            (self.decoder, (0, 0) + self.size, 0, (self.mode, 0, 1))
         ]
 
-    def load_seek(self, pos: int) -> None:
+    def load_seek(self, pos):
         pass
 
 
 class DXT1Decoder(ImageFile.PyDecoder):
     _pulls_fd = True
 
-    def decode(self, buffer: bytes | Image.SupportsArrayInterface) -> tuple[int, int]:
-        assert self.fd is not None
+    def decode(self, buffer):
         try:
             self.set_as_raw(_dxt1(self.fd, self.state.xsize, self.state.ysize))
-        except struct.error as e:
-            msg = "Truncated DDS file"
-            raise OSError(msg) from e
-        return -1, 0
+        except struct.error:
+            raise IOError("Truncated DDS file")
+        return 0, 0
 
 
 class DXT5Decoder(ImageFile.PyDecoder):
     _pulls_fd = True
 
-    def decode(self, buffer: bytes | Image.SupportsArrayInterface) -> tuple[int, int]:
-        assert self.fd is not None
+    def decode(self, buffer):
         try:
             self.set_as_raw(_dxt5(self.fd, self.state.xsize, self.state.ysize))
-        except struct.error as e:
-            msg = "Truncated DDS file"
-            raise OSError(msg) from e
-        return -1, 0
+        except struct.error:
+            raise IOError("Truncated DDS file")
+        return 0, 0
+
+Image.register_decoder('DXT1', DXT1Decoder)
+Image.register_decoder('DXT5', DXT5Decoder)
 
 
-Image.register_decoder("DXT1", DXT1Decoder)
-Image.register_decoder("DXT5", DXT5Decoder)
-
-
-def _accept(prefix: bytes) -> bool:
+def _validate(prefix):
     return prefix[:4] == b"DDS "
 
 
-Image.register_open(DdsImageFile.format, DdsImageFile, _accept)
+Image.register_open(DdsImageFile.format, DdsImageFile, _validate)
 Image.register_extension(DdsImageFile.format, ".dds")

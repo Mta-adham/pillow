@@ -1,80 +1,57 @@
-from __future__ import annotations
+from helper import unittest, PillowTestCase, hopper
 
-import pytest
-
-from PIL import Image, ImageMode
-
-from .helper import hopper
+from PIL import Image
 
 
-def test_sanity() -> None:
-    with hopper() as im:
+class TestImageMode(PillowTestCase):
+
+    def test_sanity(self):
+
+        im = hopper()
         im.mode
 
-    ImageMode.getmode("1")
-    ImageMode.getmode("L")
-    ImageMode.getmode("P")
-    ImageMode.getmode("RGB")
-    ImageMode.getmode("I")
-    ImageMode.getmode("F")
+        from PIL import ImageMode
 
-    m = ImageMode.getmode("1")
-    assert m.mode == "1"
-    assert str(m) == "1"
-    assert m.bands == ("1",)
-    assert m.basemode == "L"
-    assert m.basetype == "L"
-    assert m.typestr == "|b1"
+        ImageMode.getmode("1")
+        ImageMode.getmode("L")
+        ImageMode.getmode("P")
+        ImageMode.getmode("RGB")
+        ImageMode.getmode("I")
+        ImageMode.getmode("F")
 
-    for mode in (
-        "I;16",
-        "I;16S",
-        "I;16L",
-        "I;16LS",
-        "I;16B",
-        "I;16BS",
-        "I;16N",
-        "I;16NS",
-    ):
-        m = ImageMode.getmode(mode)
-        assert m.mode == mode
-        assert str(m) == mode
-        assert m.bands == ("I",)
-        assert m.basemode == "L"
-        assert m.basetype == "L"
+        m = ImageMode.getmode("1")
+        self.assertEqual(m.mode, "1")
+        self.assertEqual(str(m), "1")
+        self.assertEqual(m.bands, ("1",))
+        self.assertEqual(m.basemode, "L")
+        self.assertEqual(m.basetype, "L")
 
-    m = ImageMode.getmode("RGB")
-    assert m.mode == "RGB"
-    assert str(m) == "RGB"
-    assert m.bands == ("R", "G", "B")
-    assert m.basemode == "RGB"
-    assert m.basetype == "L"
-    assert m.typestr == "|u1"
+        m = ImageMode.getmode("RGB")
+        self.assertEqual(m.mode, "RGB")
+        self.assertEqual(str(m), "RGB")
+        self.assertEqual(m.bands, ("R", "G", "B"))
+        self.assertEqual(m.basemode, "RGB")
+        self.assertEqual(m.basetype, "L")
+
+    def test_properties(self):
+        def check(mode, *result):
+            signature = (
+                Image.getmodebase(mode), Image.getmodetype(mode),
+                Image.getmodebands(mode), Image.getmodebandnames(mode),
+                )
+            self.assertEqual(signature, result)
+        check("1", "L", "L", 1, ("1",))
+        check("L", "L", "L", 1, ("L",))
+        check("P", "RGB", "L", 1, ("P",))
+        check("I", "L", "I", 1, ("I",))
+        check("F", "L", "F", 1, ("F",))
+        check("RGB", "RGB", "L", 3, ("R", "G", "B"))
+        check("RGBA", "RGB", "L", 4, ("R", "G", "B", "A"))
+        check("RGBX", "RGB", "L", 4, ("R", "G", "B", "X"))
+        check("RGBX", "RGB", "L", 4, ("R", "G", "B", "X"))
+        check("CMYK", "RGB", "L", 4, ("C", "M", "Y", "K"))
+        check("YCbCr", "RGB", "L", 3, ("Y", "Cb", "Cr"))
 
 
-@pytest.mark.parametrize(
-    "mode, expected_base, expected_type, expected_bands, expected_band_names",
-    (
-        ("1", "L", "L", 1, ("1",)),
-        ("L", "L", "L", 1, ("L",)),
-        ("P", "P", "L", 1, ("P",)),
-        ("I", "L", "I", 1, ("I",)),
-        ("F", "L", "F", 1, ("F",)),
-        ("RGB", "RGB", "L", 3, ("R", "G", "B")),
-        ("RGBA", "RGB", "L", 4, ("R", "G", "B", "A")),
-        ("RGBX", "RGB", "L", 4, ("R", "G", "B", "X")),
-        ("CMYK", "RGB", "L", 4, ("C", "M", "Y", "K")),
-        ("YCbCr", "RGB", "L", 3, ("Y", "Cb", "Cr")),
-    ),
-)
-def test_properties(
-    mode: str,
-    expected_base: str,
-    expected_type: str,
-    expected_bands: int,
-    expected_band_names: tuple[str, ...],
-) -> None:
-    assert Image.getmodebase(mode) == expected_base
-    assert Image.getmodetype(mode) == expected_type
-    assert Image.getmodebands(mode) == expected_bands
-    assert Image.getmodebandnames(mode) == expected_band_names
+if __name__ == '__main__':
+    unittest.main()

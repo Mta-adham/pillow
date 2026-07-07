@@ -1,0 +1,16 @@
+name: Pillow-fd8ee84
+instance_id: python-pillow__Pillow-fd8ee84
+dataset_version: gso-bench/gso@test
+target:
+  image: slimshetty/gso:gso.eval.x86_64.python-pillow__pillow-fd8ee84
+  digest: sha256:9c28cf2208a64168fd446f102344a92ab1ada55093e080be4e3108a08c2e1312
+git:
+  repo: python-pillow/Pillow
+  base_commit: fd8ee8437bfb07449fb12e75f7dcb353ca0358bf^
+runner:
+  timeout_seconds: 1800
+  timing_iterations: 20
+api: TiffImageFile.is_animated
+files:
+- PIL/GifImagePlugin.py
+- PIL/TiffImagePlugin.py

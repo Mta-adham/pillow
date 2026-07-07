@@ -2,9 +2,9 @@
 # install raqm
 
 
-archive=raqm-cmake-99300ff3
+archive=raqm-cmake-b517ba80
 
-./download-and-extract.sh $archive https://raw.githubusercontent.com/python-pillow/pillow-depends/main/$archive.tar.gz
+./download-and-extract.sh $archive https://raw.githubusercontent.com/python-pillow/pillow-depends/master/$archive.tar.gz
 
 pushd $archive
 
@@ -15,3 +15,4 @@ make && sudo make install
 cd ..
 
 popd
+

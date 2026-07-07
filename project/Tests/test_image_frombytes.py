@@ -1,19 +1,19 @@
-from __future__ import annotations
-
-import pytest
+from helper import unittest, PillowTestCase, hopper
 
 from PIL import Image
 
-from .helper import assert_image_equal, hopper
+
+class TestImageFromBytes(PillowTestCase):
+
+    def test_sanity(self):
+        im1 = hopper()
+        im2 = Image.frombytes(im1.mode, im1.size, im1.tobytes())
+
+        self.assert_image_equal(im1, im2)
+
+    def test_not_implemented(self):
+        self.assertRaises(NotImplementedError, Image.fromstring)
 
 
-@pytest.mark.parametrize("data_type", ("bytes", "memoryview"))
-def test_sanity(data_type: str) -> None:
-    im1 = hopper()
-
-    data = im1.tobytes()
-    if data_type == "memoryview":
-        data = memoryview(data)
-    im2 = Image.frombytes(im1.mode, im1.size, data)
-
-    assert_image_equal(im1, im2)
+if __name__ == '__main__':
+    unittest.main()

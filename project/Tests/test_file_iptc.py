@@ -1,129 +1,75 @@
-from __future__ import annotations
-
-import sys
-from io import BytesIO, StringIO
-
-import pytest
+from helper import unittest, PillowTestCase, hopper
 
 from PIL import Image, IptcImagePlugin
-
-from .helper import assert_image_equal, hopper
 
 TEST_FILE = "Tests/images/iptc.jpg"
 
 
-def test_open() -> None:
-    expected = Image.new("L", (1, 1))
+class TestFileIptc(PillowTestCase):
 
-    f = BytesIO(
-        b"\x1c\x03<\x00\x02\x01\x00\x1c\x03x\x00\x01\x01\x1c\x03\x14\x00\x01\x01"
-        b"\x1c\x03\x1e\x00\x01\x01\x1c\x08\n\x00\x01\x00"
-    )
-    with Image.open(f) as im:
-        assert im.tile == [("iptc", (0, 0, 1, 1), 25, "raw")]
-        assert_image_equal(im, expected)
-
-
-def test_getiptcinfo_jpg_none() -> None:
-    # Arrange
-    with hopper() as im:
-        # Act
-        iptc = IptcImagePlugin.getiptcinfo(im)
-
-    # Assert
-    assert iptc is None
-
-
-def test_getiptcinfo_jpg_found() -> None:
-    # Arrange
-    with Image.open(TEST_FILE) as im:
-        # Act
-        iptc = IptcImagePlugin.getiptcinfo(im)
-
-    # Assert
-    assert isinstance(iptc, dict)
-    assert iptc[(2, 90)] == b"Budapest"
-    assert iptc[(2, 101)] == b"Hungary"
-
-
-def test_getiptcinfo_fotostation() -> None:
-    # Arrange
-    with open(TEST_FILE, "rb") as fp:
-        data = bytearray(fp.read())
-    data[86] = 240
-    f = BytesIO(data)
-    with Image.open(f) as im:
-        # Act
-        iptc = IptcImagePlugin.getiptcinfo(im)
-
-    # Assert
-    assert iptc is not None
-    for tag in iptc.keys():
-        if tag[0] == 240:
-            return
-    pytest.fail("FotoStation tag not found")
-
-
-def test_getiptcinfo_zero_padding() -> None:
-    # Arrange
-    with Image.open(TEST_FILE) as im:
-        im.info["photoshop"][0x0404] += b"\x00\x00\x00"
+    def test_getiptcinfo_jpg_none(self):
+        # Arrange
+        im = hopper()
 
         # Act
         iptc = IptcImagePlugin.getiptcinfo(im)
 
-    # Assert
-    assert isinstance(iptc, dict)
-    assert len(iptc) == 3
+        # Assert
+        self.assertIsNone(iptc)
 
+    def test_getiptcinfo_jpg_found(self):
+        # Arrange
+        im = Image.open(TEST_FILE)
 
-def test_getiptcinfo_tiff() -> None:
-    # Arrange
-    with Image.open("Tests/images/hopper.Lab.tif") as im:
         # Act
         iptc = IptcImagePlugin.getiptcinfo(im)
 
-    # Assert
-    assert iptc == {(1, 90): b"\x1b%G", (2, 0): b"\xcf\xc0"}
+        # Assert
+        self.assertIsInstance(iptc, dict)
+        self.assertEqual(iptc[(2, 90)], b"Budapest")
+        self.assertEqual(iptc[(2, 101)], b"Hungary")
 
+    def test_getiptcinfo_tiff_none(self):
+        # Arrange
+        im = Image.open("Tests/images/hopper.tif")
 
-def test_getiptcinfo_tiff_none() -> None:
-    # Arrange
-    with Image.open("Tests/images/hopper.tif") as im:
         # Act
         iptc = IptcImagePlugin.getiptcinfo(im)
 
-    # Assert
-    assert iptc is None
+        # Assert
+        self.assertIsNone(iptc)
 
+    def test_i(self):
+        # Arrange
+        c = b"a"
 
-def test_i() -> None:
-    # Arrange
-    c = b"a"
-
-    # Act
-    with pytest.warns(DeprecationWarning):
+        # Act
         ret = IptcImagePlugin.i(c)
 
-    # Assert
-    assert ret == 97
+        # Assert
+        self.assertEqual(ret, 97)
 
+    def test_dump(self):
+        # Arrange
+        c = b"abc"
+        # Temporarily redirect stdout
+        try:
+            from cStringIO import StringIO
+        except ImportError:
+            from io import StringIO
+        import sys
+        old_stdout = sys.stdout
+        sys.stdout = mystdout = StringIO()
 
-def test_dump(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Arrange
-    c = b"abc"
-    # Temporarily redirect stdout
-    mystdout = StringIO()
-    monkeypatch.setattr(sys, "stdout", mystdout)
-
-    # Act
-    with pytest.warns(DeprecationWarning):
+        # Act
         IptcImagePlugin.dump(c)
 
-    # Assert
-    assert mystdout.getvalue() == "61 62 63 \n"
+        # Reset stdout
+        sys.stdout = old_stdout
+
+        # Assert
+        self.assertEqual(mystdout.getvalue(), "61 62 63 \n")
 
 
-def test_pad_deprecation() -> None:
-    with pytest.warns(DeprecationWarning):
-        assert IptcImagePlugin.PAD == b"\0\0\0\0"
+if __name__ == '__main__':
+    unittest.main()

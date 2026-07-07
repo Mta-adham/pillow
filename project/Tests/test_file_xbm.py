@@ -1,13 +1,6 @@
-from __future__ import annotations
+from helper import unittest, PillowTestCase
 
-from io import BytesIO
-from pathlib import Path
-
-import pytest
-
-from PIL import Image, XbmImagePlugin
-
-from .helper import hopper
+from PIL import Image
 
 PIL151 = b"""
 #define basic_width 32
@@ -33,58 +26,41 @@ static char basic_bits[] = {
 """
 
 
-def test_pil151() -> None:
-    with Image.open(BytesIO(PIL151)) as im:
+class TestFileXbm(PillowTestCase):
+
+    def test_pil151(self):
+        from io import BytesIO
+
+        im = Image.open(BytesIO(PIL151))
+
         im.load()
-        assert im.mode == "1"
-        assert im.size == (32, 32)
+        self.assertEqual(im.mode, '1')
+        self.assertEqual(im.size, (32, 32))
 
+    def test_open(self):
+        # Arrange
+        # Created with `convert hopper.png hopper.xbm`
+        filename = "Tests/images/hopper.xbm"
 
-def test_open() -> None:
-    # Arrange
-    # Created with `convert hopper.png hopper.xbm`
-    filename = "Tests/images/hopper.xbm"
+        # Act
+        im = Image.open(filename)
 
-    # Act
-    with Image.open(filename) as im:
         # Assert
-        assert im.mode == "1"
-        assert im.size == (128, 128)
+        self.assertEqual(im.mode, '1')
+        self.assertEqual(im.size, (128, 128))
 
+    def test_open_filename_with_underscore(self):
+        # Arrange
+        # Created with `convert hopper.png hopper_underscore.xbm`
+        filename = "Tests/images/hopper_underscore.xbm"
 
-def test_open_filename_with_underscore() -> None:
-    # Arrange
-    # Created with `convert hopper.png hopper_underscore.xbm`
-    filename = "Tests/images/hopper_underscore.xbm"
+        # Act
+        im = Image.open(filename)
 
-    # Act
-    with Image.open(filename) as im:
         # Assert
-        assert im.mode == "1"
-        assert im.size == (128, 128)
+        self.assertEqual(im.mode, '1')
+        self.assertEqual(im.size, (128, 128))
 
 
-def test_invalid_file() -> None:
-    invalid_file = "Tests/images/flower.jpg"
-
-    with pytest.raises(SyntaxError):
-        XbmImagePlugin.XbmImageFile(invalid_file)
-
-
-def test_save_wrong_mode(tmp_path: Path) -> None:
-    im = hopper()
-    out = str(tmp_path / "temp.xbm")
-
-    with pytest.raises(OSError):
-        im.save(out)
-
-
-def test_hotspot(tmp_path: Path) -> None:
-    im = hopper("1")
-    out = str(tmp_path / "temp.xbm")
-
-    hotspot = (0, 7)
-    im.save(out, hotspot=hotspot)
-
-    with Image.open(out) as reloaded:
-        assert reloaded.info["hotspot"] == hotspot
+if __name__ == '__main__':
+    unittest.main()

@@ -1,41 +1,79 @@
-from __future__ import annotations
-
-from pathlib import Path, PurePath
-
-import pytest
+from helper import unittest, PillowTestCase
 
 from PIL import _util
 
 
-@pytest.mark.parametrize(
-    "test_path", ["filename.ext", Path("filename.ext"), PurePath("filename.ext")]
-)
-def test_is_path(test_path: str | Path | PurePath) -> None:
-    # Act
-    it_is = _util.is_path(test_path)
+class TestUtil(PillowTestCase):
 
-    # Assert
-    assert it_is
+    def test_is_string_type(self):
+        # Arrange
+        color = "red"
 
+        # Act
+        it_is = _util.isStringType(color)
 
-def test_is_not_path(tmp_path: Path) -> None:
-    # Arrange
-    with (tmp_path / "temp.ext").open("w") as fp:
-        pass
+        # Assert
+        self.assertTrue(it_is)
 
-    # Act
-    it_is_not = _util.is_path(fp)
+    def test_is_not_string_type(self):
+        # Arrange
+        color = (255, 0, 0)
 
-    # Assert
-    assert not it_is_not
+        # Act
+        it_is_not = _util.isStringType(color)
 
+        # Assert
+        self.assertFalse(it_is_not)
 
-def test_deferred_error() -> None:
-    # Arrange
+    def test_is_path(self):
+        # Arrange
+        fp = "filename.ext"
 
-    # Act
-    thing = _util.DeferredError.new(ValueError("Some error text"))
+        # Act
+        it_is = _util.isStringType(fp)
 
-    # Assert
-    with pytest.raises(ValueError):
-        thing.some_attr
+        # Assert
+        self.assertTrue(it_is)
+
+    def test_is_not_path(self):
+        # Arrange
+        filename = self.tempfile("temp.ext")
+        fp = open(filename, 'w').close()
+
+        # Act
+        it_is_not = _util.isPath(fp)
+
+        # Assert
+        self.assertFalse(it_is_not)
+
+    def test_is_directory(self):
+        # Arrange
+        directory = "Tests"
+
+        # Act
+        it_is = _util.isDirectory(directory)
+
+        # Assert
+        self.assertTrue(it_is)
+
+    def test_is_not_directory(self):
+        # Arrange
+        text = "abc"
+
+        # Act
+        it_is_not = _util.isDirectory(text)
+
+        # Assert
+        self.assertFalse(it_is_not)
+
+    def test_deferred_error(self):
+        # Arrange
+
+        # Act
+        thing = _util.deferred_error(ValueError("Some error text"))
+
+        # Assert
+        self.assertRaises(ValueError, lambda: thing.some_attr)
+
+if __name__ == '__main__':
+    unittest.main()

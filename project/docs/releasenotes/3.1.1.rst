@@ -1,11 +1,9 @@
+
 3.1.1
------
+=====
 
-Security
-========
-
-:cve:`2016-0740`: Buffer overflow in ``TiffDecode.c``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+CVE-2016-0740 -- Buffer overflow in TiffDecode.c
+------------------------------------------------
 
 Pillow 3.1.0 and earlier when linked against libtiff >= 4.0.0 on x64
 may overflow a buffer when reading a specially crafted tiff file.
@@ -21,15 +19,14 @@ image data over 64k is written over the heap, causing a segfault.
 
 This issue was found by security researcher FourOne.
 
-:cve:`2016-0775`: Buffer overflow in ``FliDecode.c``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+CVE-2016-0775 -- Buffer overflow in FliDecode.c
+-----------------------------------------------
 
 In all versions of Pillow, dating back at least to the last PIL 1.1.7
-release, FliDecode.c has a buffer overflow error (:cve:`2016-0775`).
+release, FliDecode.c has a buffer overflow error.
 
-Around line 192:
-
-.. code-block:: c
+Around line 192::
 
   case 16:
       /* COPY chunk */
@@ -48,13 +45,13 @@ is a set of row pointers to segments of memory that are the size of
 the row.  At the max ``y``, this will write the contents of the line
 off the end of the memory buffer, causing a segfault.
 
-This issue was found by Alyssa Besseling at Atlassian.
+This issue was found by Alyssa Besseling at Atlassian
 
-:cve:`2016-2533`: Buffer overflow in ``PcdDecode.c``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+CVE-2016-2533 -- Buffer overflow in PcdDecode.c
+-----------------------------------------------
 
 In all versions of Pillow, dating back at least to the last PIL 1.1.7
-release, ``PcdDecode.c`` has a buffer overflow error (:cve:`2016-2533`).
+release, ``PcdDecode.c`` has a buffer overflow error.
 
 The ``state.buffer`` for ``PcdDecode.c`` is allocated based on a 3
 bytes per pixel sizing, where ``PcdDecode.c`` wrote into the buffer
@@ -62,20 +59,18 @@ assuming 4 bytes per pixel. This writes 768 bytes beyond the end of
 the buffer into other Python object storage. In some cases, this
 causes a segfault, in others an internal Python malloc error.
 
-Integer overflow in ``Resample.c``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Integer overflow in Resample.c
+------------------------------
 
 If a large value was passed into the new size for an image, it is
-possible to overflow an ``int32`` value passed into malloc.
+possible to overflow an int32 value passed into malloc.
 
-.. code-block:: c
-
-    kk = malloc(xsize * kmax * sizeof(float));
-    ...
-    xbounds = malloc(xsize * 2 * sizeof(int));
+  kk = malloc(xsize * kmax * sizeof(float));
+  ...
+  xbounds = malloc(xsize * 2 * sizeof(int));
 
 ``xsize`` is trusted user input. These multiplications can overflow,
-leading the ``malloc``'d buffer to be undersized. These allocations are
+leading the malloc'd buffer to be undersized. These allocations are
 followed by a loop that writes out of bounds. This can lead to
 corruption on the heap of the Python process with attacker controlled
 float data.

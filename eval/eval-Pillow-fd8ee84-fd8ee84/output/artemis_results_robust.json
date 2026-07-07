@@ -1,0 +1,207 @@
+{
+  "instance_id": "python-pillow__Pillow-fd8ee84",
+  "run_id": "benchmark-python-pillow__Pillow-fd8ee84",
+  "model_name": "local-edit",
+  "recorded_at": "2026-07-07T17:24:55.636814+00:00",
+  "patch": {
+    "patch_type": "unchanged",
+    "code_changes": false
+  },
+  "summary": {
+    "headline": "No measurable improvement vs baseline. Likely measurement noise (unchanged code).",
+    "verdict": "no_change",
+    "measurement": {
+      "likely_noise": true,
+      "code_changes": false,
+      "statistically_significant": false,
+      "ci_includes_no_change": true,
+      "explanation": "Baseline and optimized code are the same. Any timing difference is harness measurement noise, not a real optimization."
+    },
+    "runtime_s": {
+      "baseline": 0.006346975,
+      "optimized": 0.006388891666666667,
+      "expert": 0.004634508333333333
+    },
+    "vs_baseline": {
+      "speedup": 1.000292,
+      "time_saved_s": -4.2e-05,
+      "significant": false,
+      "direction": "unchanged"
+    },
+    "vs_expert": {
+      "matches_expert": false,
+      "parity_percent": 71.84,
+      "comparison": "Expert is ~1.4\u00d7 faster than you",
+      "time_delta_s": 0.001754,
+      "time_ratio": 1.3785
+    },
+    "expert_vs_baseline": {
+      "speedup": 1.392441,
+      "time_saved_s": 0.001712,
+      "time_ratio": 1.3695
+    },
+    "memory": {
+      "measured": false
+    },
+    "confidence": {
+      "compared_to": "baseline",
+      "speedup_ratio_estimate": 0.9811,
+      "speedup_ratio_ci_95_low": 0.8576,
+      "speedup_ratio_ci_95_high": 1.1148,
+      "ci_includes_no_change": true,
+      "statistically_significant": false,
+      "interpretation": "Optimized is the same speed as baseline (1.0003\u00d7 speedup). 95% CI for speedup: 0.858\u00d7\u20131.115\u00d7 (-14.2% to +11.5% vs baseline) includes no change \u2014 likely measurement noise.",
+      "within_measurement_noise": true,
+      "tests_faster_than_baseline": "5/12"
+    },
+    "harness": {
+      "tests_passed": 12,
+      "tests_total": 12,
+      "opt_base_passed": false,
+      "opt_commit_passed": false
+    },
+    "eval": {
+      "timing_source": "gso_harness",
+      "correctness_passed": true,
+      "patch_applied": true,
+      "harness_ran": true,
+      "opt_base_passed": false,
+      "opt_commit_passed": false,
+      "perf_tests_passed": 12,
+      "perf_tests_total": 12,
+      "perf_completion_rate": 100.0,
+      "memory_measured": false
+    },
+    "latency": {
+      "baseline": {
+        "p50_ms": 5.233,
+        "p75_ms": 6.361,
+        "p95_ms": 12.213,
+        "p99_ms": 12.887,
+        "min_ms": 2.546,
+        "max_ms": 12.977,
+        "n_samples": 100
+      },
+      "optimized": {
+        "p50_ms": 5.335,
+        "p75_ms": 6.389,
+        "p95_ms": 11.37,
+        "p99_ms": 12.933,
+        "min_ms": 2.659,
+        "max_ms": 12.957,
+        "n_samples": 100
+      },
+      "expert": {
+        "p50_ms": 3.625,
+        "p75_ms": 5.174,
+        "p95_ms": 10.14,
+        "p99_ms": 10.258,
+        "min_ms": 2.015,
+        "max_ms": 10.389,
+        "n_samples": 100
+      },
+      "optimized_p99_vs_p50": 2.424
+    },
+    "per_test": {
+      "n_tests": 12,
+      "baseline_ms": [
+        9.148,
+        4.813,
+        5.257,
+        3.584,
+        3.487,
+        8.139,
+        7.012,
+        7.135,
+        4.196,
+        12.579,
+        4.623,
+        6.19
+      ],
+      "optimized_ms": [
+        9.331,
+        5.078,
+        5.207,
+        3.606,
+        3.446,
+        8.747,
+        5.435,
+        8.071,
+        4.113,
+        12.853,
+        4.657,
+        6.121
+      ],
+      "speedup_vs_baseline": [
+        0.9804,
+        0.9477,
+        1.0096,
+        0.9938,
+        1.0121,
+        0.9304,
+        1.2901,
+        0.884,
+        1.0202,
+        0.9787,
+        0.9925,
+        1.0114
+      ],
+      "expert_ms": [
+        5.829,
+        2.948,
+        2.968,
+        2.457,
+        2.49,
+        6.262,
+        4.579,
+        5.387,
+        3.378,
+        10.244,
+        3.831,
+        5.241
+      ],
+      "expert_speedup_vs_baseline": [
+        1.5696,
+        1.6326,
+        1.771,
+        1.4587,
+        1.4003,
+        1.2997,
+        1.5314,
+        1.3246,
+        1.2422,
+        1.2279,
+        1.2068,
+        1.181
+      ],
+      "optimized_time_ratio_vs_expert": [
+        1.601,
+        1.7226,
+        1.7541,
+        1.4677,
+        1.3835,
+        1.3969,
+        1.1871,
+        1.4984,
+        1.2176,
+        1.2547,
+        1.2158,
+        1.1677
+      ]
+    }
+  },
+  "harness_report": "/home/manal/Benchmarks/gso/repos/pillow/logs/run_evaluation/benchmark-python-pillow__Pillow-fd8ee84/local-edit/python-pillow__Pillow-fd8ee84/report.json",
+  "provenance": {
+    "benchmark": "Pillow-fd8ee84",
+    "instance_id": "python-pillow__Pillow-fd8ee84",
+    "timestamp": "2026-07-07T17:24:55.636814+00:00",
+    "benchmark_def_sha256": "02ce8ff10b70fddebabc0aa0ab5a264e6e7ff54f1f96a1318bbd0103c8b1c978",
+    "dataset_version": "gso-bench/gso@test",
+    "image": "slimshetty/gso:gso.eval.x86_64.python-pillow__pillow-fd8ee84",
+    "image_digest": "sha256:9c28cf2208a64168fd446f102344a92ab1ada55093e080be4e3108a08c2e1312",
+    "git_repo": "python-pillow/Pillow",
+    "git_sha": "fd8ee8437bfb",
+    "git_base_commit": "fd8ee8437bfb07449fb12e75f7dcb353ca0358bf^",
+    "gso_version": "unknown"
+  }
+}

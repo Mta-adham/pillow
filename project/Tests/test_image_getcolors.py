@@ -1,74 +1,71 @@
-from __future__ import annotations
-
-from .helper import hopper
+from helper import unittest, PillowTestCase, hopper
 
 
-def test_getcolors() -> None:
-    def getcolors(mode: str, limit: int | None = None) -> int | None:
-        im = hopper(mode)
-        if limit:
-            colors = im.getcolors(limit)
-        else:
-            colors = im.getcolors()
-        if colors:
-            return len(colors)
-        return None
+class TestImageGetColors(PillowTestCase):
 
-    assert getcolors("1") == 2
-    assert getcolors("L") == 255
-    assert getcolors("I") == 255
-    assert getcolors("F") == 255
-    assert getcolors("P") == 96  # fixed palette
-    assert getcolors("RGB") is None
-    assert getcolors("RGBA") is None
-    assert getcolors("CMYK") is None
-    assert getcolors("YCbCr") is None
+    def test_getcolors(self):
 
-    assert getcolors("L", 128) is None
-    assert getcolors("L", 1024) == 255
+        def getcolors(mode, limit=None):
+            im = hopper(mode)
+            if limit:
+                colors = im.getcolors(limit)
+            else:
+                colors = im.getcolors()
+            if colors:
+                return len(colors)
+            return None
 
-    assert getcolors("RGB", 8192) is None
-    assert getcolors("RGB", 16384) == 10100
-    assert getcolors("RGB", 100000) == 10100
+        self.assertEqual(getcolors("1"), 2)
+        self.assertEqual(getcolors("L"), 255)
+        self.assertEqual(getcolors("I"), 255)
+        self.assertEqual(getcolors("F"), 255)
+        self.assertEqual(getcolors("P"), 90)  # fixed palette
+        self.assertIsNone(getcolors("RGB"))
+        self.assertIsNone(getcolors("RGBA"))
+        self.assertIsNone(getcolors("CMYK"))
+        self.assertIsNone(getcolors("YCbCr"))
 
-    assert getcolors("RGBA", 16384) == 10100
-    assert getcolors("CMYK", 16384) == 10100
-    assert getcolors("YCbCr", 16384) == 9329
+        self.assertIsNone(getcolors("L", 128))
+        self.assertEqual(getcolors("L", 1024), 255)
+
+        self.assertIsNone(getcolors("RGB", 8192))
+        self.assertEqual(getcolors("RGB", 16384), 10100)
+        self.assertEqual(getcolors("RGB", 100000), 10100)
+
+        self.assertEqual(getcolors("RGBA", 16384), 10100)
+        self.assertEqual(getcolors("CMYK", 16384), 10100)
+        self.assertEqual(getcolors("YCbCr", 16384), 9329)
+
+    # --------------------------------------------------------------------
+
+    def test_pack(self):
+        # Pack problems for small tables (@PIL209)
+
+        im = hopper().quantize(3).convert("RGB")
+
+        expected = [(4039, (172, 166, 181)),
+                    (4385, (124, 113, 134)),
+                    (7960, (31, 20, 33))]
+
+        A = im.getcolors(maxcolors=2)
+        self.assertIsNone(A)
+
+        A = im.getcolors(maxcolors=3)
+        A.sort()
+        self.assertEqual(A, expected)
+
+        A = im.getcolors(maxcolors=4)
+        A.sort()
+        self.assertEqual(A, expected)
+
+        A = im.getcolors(maxcolors=8)
+        A.sort()
+        self.assertEqual(A, expected)
+
+        A = im.getcolors(maxcolors=16)
+        A.sort()
+        self.assertEqual(A, expected)
 
 
-# --------------------------------------------------------------------
-
-
-def test_pack() -> None:
-    # Pack problems for small tables (@PIL209)
-
-    im = hopper().quantize(3).convert("RGB")
-
-    expected = [
-        (4039, (172, 166, 181)),
-        (4385, (124, 113, 134)),
-        (7960, (31, 20, 33)),
-    ]
-
-    A = im.getcolors(maxcolors=2)
-    assert A is None
-
-    A = im.getcolors(maxcolors=3)
-    assert A is not None
-    A.sort()
-    assert A == expected
-
-    A = im.getcolors(maxcolors=4)
-    assert A is not None
-    A.sort()
-    assert A == expected
-
-    A = im.getcolors(maxcolors=8)
-    assert A is not None
-    A.sort()
-    assert A == expected
-
-    A = im.getcolors(maxcolors=16)
-    assert A is not None
-    A.sort()
-    assert A == expected
+if __name__ == '__main__':
+    unittest.main()

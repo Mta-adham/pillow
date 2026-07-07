@@ -1,10 +1,18 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # minimal sanity check
-from __future__ import annotations
+from __future__ import print_function
 
 import sys
+import os
 
-from PIL import Image, features
+if "--installed" in sys.argv:
+    sys_path_0 = sys.path.pop(0)
+
+from PIL import Image, ImageDraw, ImageFilter, ImageMath
+from PIL import features
+
+if "--installed" in sys.argv:
+    sys.path.insert(0, sys_path_0)
 
 try:
     Image.core.ping
@@ -15,13 +23,16 @@ except AttributeError:
     pass
 
 
-def testimage() -> None:
+def _info(im):
+    im.load()
+    return im.format, im.mode, im.size
+
+
+def testimage():
     """
     PIL lets you create in-memory images with various pixel types:
 
-    >>> from PIL import Image, ImageDraw, ImageFilter, ImageMath
     >>> im = Image.new("1", (128, 128)) # monochrome
-    >>> def _info(im): return im.format, im.mode, im.size
     >>> _info(im)
     (None, '1', (128, 128))
     >>> _info(Image.new("L", (128, 128))) # grayscale (luminance)
@@ -37,14 +48,14 @@ def testimage() -> None:
 
     Or open existing files:
 
-    >>> with Image.open("Tests/images/hopper.gif") as im:
-    ...     _info(im)
+    >>> im = Image.open("Tests/images/hopper.gif")
+    >>> _info(im)
     ('GIF', 'P', (128, 128))
     >>> _info(Image.open("Tests/images/hopper.ppm"))
     ('PPM', 'RGB', (128, 128))
     >>> try:
     ...  _info(Image.open("Tests/images/hopper.jpg"))
-    ... except OSError as v:
+    ... except IOError as v:
     ...  print(v)
     ('JPEG', 'RGB', (128, 128))
 
@@ -52,7 +63,7 @@ def testimage() -> None:
     or you call the "load" method:
 
     >>> im = Image.open("Tests/images/hopper.ppm")
-    >>> print(im._im) # internal image attribute
+    >>> print(im.im) # internal image attribute
     None
     >>> a = im.load()
     >>> type(im.im) # doctest: +ELLIPSIS
@@ -84,8 +95,6 @@ def testimage() -> None:
     2
     >>> len(im.histogram())
     768
-    >>> '%.7f' % im.entropy()
-    '8.8212866'
     >>> _info(im.point(list(range(256))*3))
     (None, 'RGB', (128, 128))
     >>> _info(im.resize((64, 64)))
@@ -98,9 +107,9 @@ def testimage() -> None:
     10456
     >>> len(im.tobytes())
     49152
-    >>> _info(im.transform((512, 512), Image.Transform.AFFINE, (1,0,0,0,1,0)))
+    >>> _info(im.transform((512, 512), Image.AFFINE, (1,0,0,0,1,0)))
     (None, 'RGB', (512, 512))
-    >>> _info(im.transform((512, 512), Image.Transform.EXTENT, (32,32,96,96)))
+    >>> _info(im.transform((512, 512), Image.EXTENT, (32,32,96,96)))
     (None, 'RGB', (512, 512))
 
     The ImageDraw module lets you draw stuff in raster images:
@@ -139,14 +148,14 @@ def testimage() -> None:
     In 1.1.6, you can use the ImageMath module to do image
     calculations.
 
-    >>> im = ImageMath.lambda_eval( \
-      lambda args: args["float"](args["im"] + 20), im=im.convert("L") \
-    )
+    >>> im = ImageMath.eval("float(im + 20)", im=im.convert("L"))
     >>> im.mode, im.size
     ('F', (128, 128))
 
     PIL can do many other things, but I'll leave that for another
-    day.
+    day.  If you're curious, check the handbook, available from:
+
+        http://www.pythonware.com
 
     Cheers /F
     """
@@ -157,17 +166,40 @@ if __name__ == "__main__":
 
     exit_status = 0
 
-    features.pilinfo(sys.stdout, False)
+    print("-"*68)
+    print("Pillow", Image.PILLOW_VERSION, "TEST SUMMARY ")
+    print("-"*68)
+    print("Python modules loaded from", os.path.dirname(Image.__file__))
+    print("Binary modules loaded from", os.path.dirname(Image.core.__file__))
+    print("-"*68)
+    for name, feature in [
+        ("pil", "PIL CORE"),
+        ("tkinter", "TKINTER"),
+        ("freetype2", "FREETYPE2"),
+        ("littlecms2", "LITTLECMS2"),
+        ("webp", "WEBP"),
+        ("transp_webp", "Transparent WEBP"),
+        ("webp_mux", "WEBPMUX"),
+        ("jpg", "JPEG"),
+        ("jpg_2000", "OPENJPEG (JPEG2000)"),
+        ("zlib", "ZLIB (PNG/ZIP)"),
+        ("libtiff", "LIBTIFF"),
+        ("raqm", "RAQM (Bidirectional Text)")
+    ]:
+        if features.check(name):
+            print("---", feature, "support ok")
+        else:
+            print("***", feature, "support not installed")
+    print("-"*68)
 
     # use doctest to make sure the test program behaves as documented!
     import doctest
-
     print("Running selftest:")
     status = doctest.testmod(sys.modules[__name__])
     if status[0]:
-        print(f"*** {status[0]} tests of {status[1]} failed.")
+        print("*** %s tests of %d failed." % status)
         exit_status = 1
     else:
-        print(f"--- {status[1]} tests passed.")
+        print("--- %s tests passed." % status[1])
 
     sys.exit(exit_status)

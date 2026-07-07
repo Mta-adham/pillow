@@ -1,40 +1,46 @@
-from __future__ import annotations
+from helper import unittest, PillowTestCase
 
 from PIL import Image
 
 
-def test_white() -> None:
-    with Image.open("Tests/images/lab.tif") as i:
+class TestFormatLab(PillowTestCase):
+
+    def test_white(self):
+        i = Image.open('Tests/images/lab.tif')
+
         i.load()
 
-        assert i.mode == "LAB"
+        self.assertEqual(i.mode, 'LAB')
 
-        assert i.getbands() == ("L", "A", "B")
+        self.assertEqual(i.getbands(), ('L', 'A', 'B'))
 
         k = i.getpixel((0, 0))
+        self.assertEqual(k, (255, 128, 128))
 
         L = i.getdata(0)
         a = i.getdata(1)
         b = i.getdata(2)
 
-    assert k == (255, 128, 128)
+        self.assertEqual(list(L), [255]*100)
+        self.assertEqual(list(a), [128]*100)
+        self.assertEqual(list(b), [128]*100)
 
-    assert list(L) == [255] * 100
-    assert list(a) == [128] * 100
-    assert list(b) == [128] * 100
+    def test_green(self):
+        # l= 50 (/100), a = -100 (-128 .. 128) b=0 in PS
+        # == RGB: 0, 152, 117
+        i = Image.open('Tests/images/lab-green.tif')
 
-
-def test_green() -> None:
-    # l= 50 (/100), a = -100 (-128 .. 128) b=0 in PS
-    # == RGB: 0, 152, 117
-    with Image.open("Tests/images/lab-green.tif") as i:
         k = i.getpixel((0, 0))
-    assert k == (128, 28, 128)
+        self.assertEqual(k, (128, 28, 128))
 
+    def test_red(self):
+        # l= 50 (/100), a = 100 (-128 .. 128) b=0 in PS
+        # == RGB: 255, 0, 124
+        i = Image.open('Tests/images/lab-red.tif')
 
-def test_red() -> None:
-    # l= 50 (/100), a = 100 (-128 .. 128) b=0 in PS
-    # == RGB: 255, 0, 124
-    with Image.open("Tests/images/lab-red.tif") as i:
         k = i.getpixel((0, 0))
-    assert k == (128, 228, 128)
+        self.assertEqual(k, (128, 228, 128))
+
+
+if __name__ == '__main__':
+    unittest.main()

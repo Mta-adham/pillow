@@ -1,14 +1,14 @@
-from __future__ import annotations
-
-from pathlib import Path
-
-import pytest
-
 from PIL import Image
+from helper import unittest, PillowTestCase
 
 
-def test_j2k_overflow(tmp_path: Path) -> None:
-    im = Image.new("RGBA", (1024, 131584))
-    target = str(tmp_path / "temp.jpc")
-    with pytest.raises(OSError):
-        im.save(target)
+class TestJ2kEncodeOverflow(PillowTestCase):
+    def test_j2k_overflow(self):
+
+        im = Image.new('RGBA', (1024, 131584))
+        target = self.tempfile('temp.jpc')
+        with self.assertRaises(IOError):
+            im.save(target)
+
+if __name__ == '__main__':
+    unittest.main()

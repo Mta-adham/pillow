@@ -1,65 +1,64 @@
-from __future__ import annotations
-
-import zlib
+from helper import unittest, PillowTestCase
+from PIL import Image, PngImagePlugin, ImageFile
 from io import BytesIO
-
-from PIL import Image, ImageFile, PngImagePlugin
+import zlib
 
 TEST_FILE = "Tests/images/png_decompression_dos.png"
 
 
-def test_ignore_dos_text() -> None:
-    ImageFile.LOAD_TRUNCATED_IMAGES = True
+class TestPngDos(PillowTestCase):
+    def test_ignore_dos_text(self):
+        ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-    try:
-        im = Image.open(TEST_FILE)
-        im.load()
-    finally:
-        ImageFile.LOAD_TRUNCATED_IMAGES = False
+        try:
+            im = Image.open(TEST_FILE)
+            im.load()
+        finally:
+            ImageFile.LOAD_TRUNCATED_IMAGES = False
 
-    assert isinstance(im, PngImagePlugin.PngImageFile)
-    for s in im.text.values():
-        assert len(s) < 1024 * 1024, "Text chunk larger than 1M"
+        for s in im.text.values():
+            self.assertLess(len(s), 1024*1024, "Text chunk larger than 1M")
 
-    for s in im.info.values():
-        assert len(s) < 1024 * 1024, "Text chunk larger than 1M"
+        for s in im.info.values():
+            self.assertLess(len(s), 1024*1024, "Text chunk larger than 1M")
 
+    def test_dos_text(self):
 
-def test_dos_text() -> None:
-    try:
-        im = Image.open(TEST_FILE)
-        im.load()
-    except ValueError as msg:
-        assert msg, "Decompressed Data Too Large"
-        return
+        try:
+            im = Image.open(TEST_FILE)
+            im.load()
+        except ValueError as msg:
+            self.assertTrue(msg, "Decompressed Data Too Large")
+            return
 
-    assert isinstance(im, PngImagePlugin.PngImageFile)
-    for s in im.text.values():
-        assert len(s) < 1024 * 1024, "Text chunk larger than 1M"
+        for s in im.text.values():
+            self.assertLess(len(s), 1024*1024, "Text chunk larger than 1M")
 
+    def test_dos_total_memory(self):
+        im = Image.new('L', (1, 1))
+        compressed_data = zlib.compress('a'*1024*1023)
 
-def test_dos_total_memory() -> None:
-    im = Image.new("L", (1, 1))
-    compressed_data = zlib.compress(b"a" * 1024 * 1023)
+        info = PngImagePlugin.PngInfo()
 
-    info = PngImagePlugin.PngInfo()
+        for x in range(64):
+            info.add_text('t%s' % x, compressed_data, 1)
+            info.add_itxt('i%s' % x, compressed_data, zip=True)
 
-    for x in range(64):
-        info.add_text(f"t{x}", compressed_data, zip=True)
-        info.add_itxt(f"i{x}", compressed_data, zip=True)
+        b = BytesIO()
+        im.save(b, 'PNG', pnginfo=info)
+        b.seek(0)
 
-    b = BytesIO()
-    im.save(b, "PNG", pnginfo=info)
-    b.seek(0)
+        try:
+            im2 = Image.open(b)
+        except ValueError as msg:
+            self.assertIn("Too much memory", msg)
+            return
 
-    try:
-        im2 = Image.open(b)
-    except ValueError as msg:
-        assert "Too much memory" in str(msg)
-        return
+        total_len = 0
+        for txt in im2.text.values():
+            total_len += len(txt)
+        self.assertLess(total_len, 64*1024*1024,
+                        "Total text chunks greater than 64M")
 
-    total_len = 0
-    assert isinstance(im2, PngImagePlugin.PngImageFile)
-    for txt in im2.text.values():
-        total_len += len(txt)
-    assert total_len < 64 * 1024 * 1024, "Total text chunks greater than 64M"
+if __name__ == '__main__':
+    unittest.main()

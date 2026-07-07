@@ -1,17 +1,20 @@
-from __future__ import annotations
-
-import pytest
-
-from .helper import assert_image_equal, fromstring, hopper
+from helper import unittest, PillowTestCase, hopper, fromstring
 
 
-def test_sanity() -> None:
-    with pytest.raises(ValueError):
-        hopper().tobitmap()
+class TestImageToBitmap(PillowTestCase):
 
-    im1 = hopper().convert("1")
+    def test_sanity(self):
 
-    bitmap = im1.tobitmap()
+        self.assertRaises(ValueError, lambda: hopper().tobitmap())
+        hopper().convert("1").tobitmap()
 
-    assert isinstance(bitmap, bytes)
-    assert_image_equal(im1, fromstring(bitmap))
+        im1 = hopper().convert("1")
+
+        bitmap = im1.tobitmap()
+
+        self.assertIsInstance(bitmap, bytes)
+        self.assert_image_equal(im1, fromstring(bitmap))
+
+
+if __name__ == '__main__':
+    unittest.main()
