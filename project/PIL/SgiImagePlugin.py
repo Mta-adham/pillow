@@ -104,11 +104,6 @@ def _save(im, fp, filename):
     z = len(im.mode)
     if dim == 1 or dim == 2:
         z = 1
-    # assert we've got the right number of bands.
-    if len(im.getbands()) != z:
-        raise ValueError("incorrect number of bands in SGI write: %s vs %s" %
-                         (z, len(im.getbands())))
-
     # Minimum Byte value
     pinmin = 0
     # Maximum Byte value (255 = 8bits per pixel)
@@ -136,6 +131,11 @@ def _save(im, fp, filename):
 
     fp.write(struct.pack('404s', b''))  # dummy
 
+    # assert we've got the right number of bands.
+    if len(im.getbands()) != z:
+        raise ValueError("incorrect number of bands in SGI write: %s vs %s" %
+                         (z, len(im.getbands())))
+
     for channel in im.split():
         fp.write(channel.tobytes())
 
@@ -149,7 +149,9 @@ Image.register_open(SgiImageFile.format, SgiImageFile, _accept)
 Image.register_save(SgiImageFile.format, _save)
 Image.register_mime(SgiImageFile.format, "image/sgi")
 Image.register_mime(SgiImageFile.format, "image/rgb")
-
-Image.register_extensions(SgiImageFile.format, [".bw", ".rgb", ".rgba", ".sgi"])
+Image.register_extension(SgiImageFile.format, ".bw")
+Image.register_extension(SgiImageFile.format, ".rgb")
+Image.register_extension(SgiImageFile.format, ".rgba")
+Image.register_extension(SgiImageFile.format, ".sgi")
 
 # End of file

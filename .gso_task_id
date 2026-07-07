@@ -9,6 +9,7 @@ git:
   base_commit: fd8ee8437bfb07449fb12e75f7dcb353ca0358bf^
 runner:
   timeout_seconds: 1800
+  timing_iterations: 20
 api: TiffImageFile.is_animated
 files:
 - PIL/GifImagePlugin.py

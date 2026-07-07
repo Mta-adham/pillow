@@ -2,7 +2,7 @@
   "instance_id": "python-pillow__Pillow-f854676",
   "run_id": "benchmark-python-pillow__Pillow-f854676",
   "model_name": "local-edit",
-  "recorded_at": "2026-07-07T17:24:55.268417+00:00",
+  "recorded_at": "2026-07-07T18:06:45.623094+00:00",
   "patch": {
     "patch_type": "unchanged",
     "code_changes": false
@@ -218,7 +218,7 @@
   "provenance": {
     "benchmark": "Pillow-f854676",
     "instance_id": "python-pillow__Pillow-f854676",
-    "timestamp": "2026-07-07T17:24:55.268417+00:00",
+    "timestamp": "2026-07-07T18:06:45.623094+00:00",
     "benchmark_def_sha256": "8f1c1d32fbf540eaa6bbeaed2d1826c3d465f490b5f60abdf5ab6ef63c5e10d5",
     "dataset_version": "gso-bench/gso@test",
     "image": "slimshetty/gso:gso.eval.x86_64.python-pillow__pillow-f854676",
@@ -226,6 +226,6 @@
     "git_repo": "python-pillow/Pillow",
     "git_sha": "f8546768d6da",
     "git_base_commit": "f8546768d6da71d9a88fbadd6df6c8448270966b^",
-    "gso_version": "unknown"
+    "gso_version": "0.1.7"
   }
 }
