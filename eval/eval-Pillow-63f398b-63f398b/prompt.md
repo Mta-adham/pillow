@@ -1,18 +1,49 @@
-# Task: Optimise `ImagingGetBBox` (Image.getbbox)
+You are optimizing `ImagingGetBBox` in this repository checkout.
+
+Edit files under `project/`. The unchanged baseline is in `baseline/` for reference.
+
+## Success criteria
+
+Your patch is scored by the GSO harness against **baseline** and a hidden **expert** reference. You may not reach expert speed — the goal is to get as close as possible while staying correct.
+
+After each attempt, check repo-root `artemis_results.json`:
+
+| Goal | Field | Target |
+|------|-------|--------|
+| Correct | `correctness_passed` | `1` |
+| Faster than baseline | `opt_base_passed` | `1` (≥1.2× GM speedup vs baseline) |
+| Near expert | `opt_commit_passed` or `vs_expert_parity_percent` | `1` or ≥95 |
+
+Use harness timings (`runtime_s_*`, `vs_baseline_speedup`) — not ad-hoc `time.time()`.
+
+## Workflow
+
+1. Read the benchmark and locate the hot path in `project/`.
+2. Make a focused change; preserve observable behavior.
+3. Run `./compile` → `./test` → `./benchmark`.
+4. Read `artemis_results.json`; iterate until gains plateau.
+
+## Issue
+
+```text
+Merge pull request #8194 from uploadcare/optimize-getbbox
+
+Optimize getbbox() and getextrema() routines
+```
 
 ## Objective
 
 Speed up `Image.getbbox()` on large images by improving the bounding-box scan algorithm in C.
 
-## Repository
+## Scope
 
-`python-pillow/Pillow` — base commit `63f398b` (see `metadata.json`)
-
-## File to optimise
+Start on the hot path in these files (change others only if strictly necessary):
 
 - `src/libImaging/GetBBox.c`
 
 ## Performance benchmark
+
+GSO scores this task with the harness below (`timeit` microbenchmarks with warm-up inside Docker).
 
 ```python
 import json, random, timeit
@@ -48,12 +79,28 @@ def experiment(images):
     return {k: img.getbbox() for k, img in images.items()}
 ```
 
-Note that `worst_img` (all-black) is the worst case for the current algorithm — it scans every pixel before returning `None`.
+`worst_img` (all-black) is the worst case for the current algorithm — it scans every pixel before returning `None`.
 
-## What to look at
+## Hints
 
 `src/libImaging/GetBBox.c` — the `GETBBOX` macro scans all pixels row by row, updating left/right bounds for every row. Think about whether the top, bottom, left, and right edges can be found with fewer total pixel comparisons by scanning each edge independently and stopping early.
 
-## Correctness constraint
+The issue mentions both `getbbox()` and `getextrema()` — both live in the same C file and share similar scan patterns.
 
-`getbbox()` must return identical `(x0, y0, x1, y1)` tuples (or `None`) for all image types and contents as the original implementation.
+Try finding each bbox edge in separate passes with **early exit** once that edge is fixed, instead of scanning every pixel for all four bounds.
+
+`worst` (all zeros) is the pathological case: an O(n²) full scan that returns `None` should become much cheaper.
+
+## Anti-patterns
+
+- Optimizing import-time or cold paths the benchmark never executes.
+- Micro-opts that do not change the hot loop shown above.
+- Skipping `./test` — a fast but broken patch scores zero.
+- Reading or copying from `expert/` — that is the scoring reference, not input.
+
+## Constraints
+
+- **Drop-in replacement:** keep the public API under test unchanged (signatures, return types, errors, observable behavior).
+- Do not rename public symbols or change import paths callers rely on.
+- Do not add new required dependencies.
+- **Correctness:** `getbbox()` must return identical `(x0, y0, x1, y1)` tuples (or `None`) for all image types and contents as the original implementation.

@@ -1,21 +1,50 @@
-# Task: Optimise `TiffImageFile.is_animated` (and `GifImageFile.is_animated`)
+You are optimizing `TiffImageFile.is_animated` in this repository checkout.
+
+Edit files under `project/`. The unchanged baseline is in `baseline/` for reference.
+
+## Success criteria
+
+Your patch is scored by the GSO harness against **baseline** and a hidden **expert** reference. You may not reach expert speed — the goal is to get as close as possible while staying correct.
+
+After each attempt, check repo-root `artemis_results.json`:
+
+| Goal | Field | Target |
+|------|-------|--------|
+| Correct | `correctness_passed` | `1` |
+| Faster than baseline | `opt_base_passed` | `1` (≥1.2× GM speedup vs baseline) |
+| Near expert | `opt_commit_passed` or `vs_expert_parity_percent` | `1` or ≥95 |
+
+Use harness timings (`runtime_s_*`, `vs_baseline_speedup`) — not ad-hoc `time.time()`.
+
+## Workflow
+
+1. Read the benchmark and locate the hot path in `project/`.
+2. Make a focused change; preserve observable behavior.
+3. Run `./compile` → `./test` → `./benchmark`.
+4. Read `artemis_results.json`; iterate until gains plateau.
+
+## Issue
+
+```text
+Merge pull request #2315 from radarhere/is_animated
+
+If n_frames is known, then use when determining is_animated
+```
 
 ## Objective
 
 Improve the runtime of the `is_animated` property on PIL TIFF and GIF image objects without changing observable behaviour.
 
-## Repository
+## Scope
 
-`python-pillow/Pillow` — base commit `fd8ee8437bfb07449fb12e75f7dcb353ca0358bf^`
+Start on the hot path in these files (change others only if strictly necessary):
 
-## Files to optimise
-
-- `PIL/TiffImagePlugin.py`
 - `PIL/GifImagePlugin.py`
-
-Both files contain an `is_animated` property with the same structure. Apply the fix to both.
+- `PIL/TiffImagePlugin.py`
 
 ## Performance benchmark
+
+GSO scores this task with the harness below (`timeit` microbenchmarks with warm-up inside Docker).
 
 ```python
 import json, random, timeit
@@ -51,7 +80,7 @@ def experiment(data_paths):
     return results
 ```
 
-## What to look at
+## Hints
 
 Current `is_animated` in `PIL/TiffImagePlugin.py` (~line 964):
 
@@ -71,6 +100,22 @@ def is_animated(self):
 
 The class also has a `_n_frames` cache populated by `n_frames`. The benchmark accesses both properties in both orderings — consider what redundant work happens when one is already cached.
 
-## Correctness constraint
+The issue: when `_n_frames` is already known, derive `is_animated` from it instead of probing with `seek(1)`.
 
-`is_animated` must return the correct value regardless of whether `n_frames` was called first or not.
+The benchmark opens each TIFF twice and calls `is_animated` both **before** and **after** `n_frames` — avoid redundant seeks when the frame count is cached.
+
+Mirror the same fix in **both** `TiffImagePlugin.py` and `GifImagePlugin.py`.
+
+## Anti-patterns
+
+- Optimizing import-time or cold paths the benchmark never executes.
+- Micro-opts that do not change the hot loop shown above.
+- Skipping `./test` — a fast but broken patch scores zero.
+- Reading or copying from `expert/` — that is the scoring reference, not input.
+
+## Constraints
+
+- **Drop-in replacement:** keep the public API under test unchanged (signatures, return types, errors, observable behavior).
+- Do not rename public symbols or change import paths callers rely on.
+- Do not add new required dependencies.
+- **Correctness:** `is_animated` must return the correct value regardless of whether `n_frames` was called first or not.
