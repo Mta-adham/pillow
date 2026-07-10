@@ -25,11 +25,10 @@ pip install -r requirements.txt
 ## Workflow
 
 ```bash
-./compile python-pillow__Pillow-63f398b   # sets .gso_task_id + builds patch
+./compile python-pillow__Pillow-63f398b   # sets .gso_task_id + syncs project/
 # edit files under project/ (see Tasks table)
-./compile                                 # rebuild patch
-./benchmark                               # GSO harness → artemis_results.json
-./test                                    # tests_artemis_results.json (reuses report if present)
+./benchmark                               # re-diffs project/ then GSO harness → artemis_results.json
+./test                                    # re-diffs project/; tests_artemis_results.json (reuses report if present)
 ```
 
 ## Commands
@@ -37,8 +36,8 @@ pip install -r requirements.txt
 | Command | What it does |
 |---------|----------------|
 | `./compile [task]` | Sync `project/` + build `patch.diff` |
-| `./benchmark [task]` | GSO harness perf eval → `artemis_results.json` |
-| `./test [task]` | Correctness → `tests_artemis_results.json` (reuses `test-*` or `benchmark-*` report if present; `--rerun` for a fresh test harness) |
+| `./benchmark [task]` | Re-diff `project/` → patch, then GSO harness perf eval → `artemis_results.json` |
+| `./test [task]` | Re-diff `project/` → patch; correctness → `tests_artemis_results.json` (reuses `test-*` or `benchmark-*` report if present; `--rerun` for a fresh test harness) |
 | `./reset [task]` | Restore `project/` from `baseline/` (discard edits) |
 
 Omit the task ID to use the active task (`.gso_task_id`).
@@ -48,6 +47,7 @@ Omit the task ID to use the active task (`.gso_task_id`).
 | Script | What it does |
 |--------|----------------|
 | `bash scripts/test_all_commands.sh` | Full E2E: all tasks compile → benchmark → test → reset + validation |
+| `bash scripts/test_project_patch_refresh.sh` | Verify every task: `./compile` preserves `project/` edits and puts them in the harness patch |
 | `bash scripts/images.sh pull-images [task]` | Pull pinned Docker images |
 | `bash scripts/images.sh verify-images [task]` | Verify local images match `benchmark.yaml` digests |
 | `bash scripts/images.sh pin-images [task]` | Update digest in `benchmark.yaml` after image rebuild |

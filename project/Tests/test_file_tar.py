@@ -1,36 +1,46 @@
-from helper import unittest, PillowTestCase
+import pytest
 
-from PIL import Image, TarIO
+from PIL import Image, TarIO, features
 
-codecs = dir(Image.core)
+from .helper import is_pypy
 
 # Sample tar archive
 TEST_TAR_FILE = "Tests/images/hopper.tar"
 
 
-class TestFileTar(PillowTestCase):
-
-    def setUp(self):
-        if "zip_decoder" not in codecs and "jpeg_decoder" not in codecs:
-            self.skipTest("neither jpeg nor zip support not available")
-
-    def test_sanity(self):
-        if "zip_decoder" in codecs:
-            tar = TarIO.TarIO(TEST_TAR_FILE, 'hopper.png')
-            im = Image.open(tar)
-            im.load()
-            self.assertEqual(im.mode, "RGB")
-            self.assertEqual(im.size, (128, 128))
-            self.assertEqual(im.format, "PNG")
-
-        if "jpeg_decoder" in codecs:
-            tar = TarIO.TarIO(TEST_TAR_FILE, 'hopper.jpg')
-            im = Image.open(tar)
-            im.load()
-            self.assertEqual(im.mode, "RGB")
-            self.assertEqual(im.size, (128, 128))
-            self.assertEqual(im.format, "JPEG")
+def test_sanity():
+    for codec, test_path, format in [
+        ["zlib", "hopper.png", "PNG"],
+        ["jpg", "hopper.jpg", "JPEG"],
+    ]:
+        if features.check(codec):
+            with TarIO.TarIO(TEST_TAR_FILE, test_path) as tar:
+                with Image.open(tar) as im:
+                    im.load()
+                    assert im.mode == "RGB"
+                    assert im.size == (128, 128)
+                    assert im.format == format
 
 
-if __name__ == '__main__':
-    unittest.main()
+@pytest.mark.skipif(is_pypy(), reason="Requires CPython")
+def test_unclosed_file():
+    def open():
+        TarIO.TarIO(TEST_TAR_FILE, "hopper.jpg")
+
+    pytest.warns(ResourceWarning, open)
+
+
+def test_close():
+    with pytest.warns(None) as record:
+        tar = TarIO.TarIO(TEST_TAR_FILE, "hopper.jpg")
+        tar.close()
+
+    assert not record
+
+
+def test_contextmanager():
+    with pytest.warns(None) as record:
+        with TarIO.TarIO(TEST_TAR_FILE, "hopper.jpg"):
+            pass
+
+    assert not record

@@ -1,17 +1,9 @@
-from helper import unittest, PillowTestCase, hopper, py3
+from .helper import hopper
 
 
-class TestImageGetIm(PillowTestCase):
+def test_sanity():
+    im = hopper()
+    type_repr = repr(type(im.getim()))
 
-    def test_sanity(self):
-        im = hopper()
-        type_repr = repr(type(im.getim()))
-
-        if py3:
-            self.assertIn("PyCapsule", type_repr)
-
-        self.assertIsInstance(im.im.id, int)
-
-
-if __name__ == '__main__':
-    unittest.main()
+    assert "PyCapsule" in type_repr
+    assert isinstance(im.im.id, int)

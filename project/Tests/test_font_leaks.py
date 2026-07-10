@@ -1,34 +1,33 @@
-from __future__ import division
-from helper import unittest, PillowLeakTestCase
-import sys
-from PIL import Image, features, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
-@unittest.skipIf(sys.platform.startswith('win32'), "requires Unix or MacOS")
+from .helper import PillowLeakTestCase, skip_unless_feature
+
+
 class TestTTypeFontLeak(PillowLeakTestCase):
-    # fails at iteration 3 in master
+    # fails at iteration 3 in main
     iterations = 10
-    mem_limit = 4096 #k
+    mem_limit = 4096  # k
 
     def _test_font(self, font):
-        im = Image.new('RGB', (255,255), 'white')
+        im = Image.new("RGB", (255, 255), "white")
         draw = ImageDraw.ImageDraw(im)
-        self._test_leak(lambda: draw.text((0, 0), "some text "*1024, #~10k
-                                          font=font, fill="black"))
-            
-    @unittest.skipIf(not features.check('freetype2'), "Test requires freetype2")
+        self._test_leak(
+            lambda: draw.text(
+                (0, 0), "some text " * 1024, font=font, fill="black"  # ~10k
+            )
+        )
+
+    @skip_unless_feature("freetype2")
     def test_leak(self):
-        ttype = ImageFont.truetype('Tests/fonts/FreeMono.ttf', 20)
+        ttype = ImageFont.truetype("Tests/fonts/FreeMono.ttf", 20)
         self._test_font(ttype)
 
+
 class TestDefaultFontLeak(TestTTypeFontLeak):
-    # fails at iteration 37 in master
+    # fails at iteration 37 in main
     iterations = 100
-    mem_limit = 1024 #k
-    
+    mem_limit = 1024  # k
+
     def test_leak(self):
         default_font = ImageFont.load_default()
         self._test_font(default_font)
-
-
-if __name__ == '__main__':
-    unittest.main()

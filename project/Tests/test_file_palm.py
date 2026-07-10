@@ -1,58 +1,81 @@
-from helper import unittest, PillowTestCase, hopper, imagemagick_available
-
 import os.path
+import subprocess
+
+import pytest
+
+from PIL import Image
+
+from .helper import assert_image_equal, hopper, magick_command
 
 
-class TestFilePalm(PillowTestCase):
-    _roundtrip = imagemagick_available()
+def helper_save_as_palm(tmp_path, mode):
+    # Arrange
+    im = hopper(mode)
+    outfile = str(tmp_path / ("temp_" + mode + ".palm"))
 
-    def helper_save_as_palm(self, mode):
-        # Arrange
-        im = hopper(mode)
-        outfile = self.tempfile("temp_" + mode + ".palm")
+    # Act
+    im.save(outfile)
 
-        # Act
-        im.save(outfile)
-
-        # Assert
-        self.assertTrue(os.path.isfile(outfile))
-        self.assertGreater(os.path.getsize(outfile), 0)
-
-    def roundtrip(self, mode):
-        if not self._roundtrip:
-            return
-
-        im = hopper(mode)
-        outfile = self.tempfile("temp.palm")
-
-        im.save(outfile)
-        converted = self.open_withImagemagick(outfile)
-        self.assert_image_equal(converted, im)
-
-    def test_monochrome(self):
-        # Arrange
-        mode = "1"
-
-        # Act / Assert
-        self.helper_save_as_palm(mode)
-        self.roundtrip(mode)
-
-    def test_p_mode(self):
-        # Arrange
-        mode = "P"
-
-        # Act / Assert
-        self.helper_save_as_palm(mode)
-        self.skipKnownBadTest("Palm P image is wrong")
-        self.roundtrip(mode)
-
-    def test_rgb_ioerror(self):
-        # Arrange
-        mode = "RGB"
-
-        # Act / Assert
-        self.assertRaises(IOError, self.helper_save_as_palm, mode)
+    # Assert
+    assert os.path.isfile(outfile)
+    assert os.path.getsize(outfile) > 0
 
 
-if __name__ == '__main__':
-    unittest.main()
+def open_with_magick(magick, tmp_path, f):
+    outfile = str(tmp_path / "temp.png")
+    rc = subprocess.call(
+        magick + [f, outfile], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
+    )
+    if rc:
+        raise OSError
+    return Image.open(outfile)
+
+
+def roundtrip(tmp_path, mode):
+    magick = magick_command()
+    if not magick:
+        return
+
+    im = hopper(mode)
+    outfile = str(tmp_path / "temp.palm")
+
+    im.save(outfile)
+    converted = open_with_magick(magick, tmp_path, outfile)
+    assert_image_equal(converted, im)
+
+
+def test_monochrome(tmp_path):
+    # Arrange
+    mode = "1"
+
+    # Act / Assert
+    helper_save_as_palm(tmp_path, mode)
+    roundtrip(tmp_path, mode)
+
+
+@pytest.mark.xfail(reason="Palm P image is wrong")
+def test_p_mode(tmp_path):
+    # Arrange
+    mode = "P"
+
+    # Act / Assert
+    helper_save_as_palm(tmp_path, mode)
+    roundtrip(tmp_path, mode)
+
+
+def test_l_oserror(tmp_path):
+    # Arrange
+    mode = "L"
+
+    # Act / Assert
+    with pytest.raises(OSError):
+        helper_save_as_palm(tmp_path, mode)
+
+
+def test_rgb_oserror(tmp_path):
+    # Arrange
+    mode = "RGB"
+
+    # Act / Assert
+    with pytest.raises(OSError):
+        helper_save_as_palm(tmp_path, mode)

@@ -1,18 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # minimal sanity check
-from __future__ import print_function
 
 import sys
-import os
 
-if "--installed" in sys.argv:
-    sys_path_0 = sys.path.pop(0)
-
-from PIL import Image, ImageDraw, ImageFilter, ImageMath
-from PIL import features
-
-if "--installed" in sys.argv:
-    sys.path.insert(0, sys_path_0)
+from PIL import Image, features
 
 try:
     Image.core.ping
@@ -23,16 +14,13 @@ except AttributeError:
     pass
 
 
-def _info(im):
-    im.load()
-    return im.format, im.mode, im.size
-
-
 def testimage():
     """
     PIL lets you create in-memory images with various pixel types:
 
+    >>> from PIL import Image, ImageDraw, ImageFilter, ImageMath
     >>> im = Image.new("1", (128, 128)) # monochrome
+    >>> def _info(im): return (im.format, im.mode, im.size)
     >>> _info(im)
     (None, '1', (128, 128))
     >>> _info(Image.new("L", (128, 128))) # grayscale (luminance)
@@ -48,14 +36,14 @@ def testimage():
 
     Or open existing files:
 
-    >>> im = Image.open("Tests/images/hopper.gif")
-    >>> _info(im)
+    >>> with Image.open("Tests/images/hopper.gif") as im:
+    ...     _info(im)
     ('GIF', 'P', (128, 128))
     >>> _info(Image.open("Tests/images/hopper.ppm"))
     ('PPM', 'RGB', (128, 128))
     >>> try:
     ...  _info(Image.open("Tests/images/hopper.jpg"))
-    ... except IOError as v:
+    ... except OSError as v:
     ...  print(v)
     ('JPEG', 'RGB', (128, 128))
 
@@ -95,6 +83,8 @@ def testimage():
     2
     >>> len(im.histogram())
     768
+    >>> '%.7f' % im.entropy()
+    '8.8212866'
     >>> _info(im.point(list(range(256))*3))
     (None, 'RGB', (128, 128))
     >>> _info(im.resize((64, 64)))
@@ -107,9 +97,9 @@ def testimage():
     10456
     >>> len(im.tobytes())
     49152
-    >>> _info(im.transform((512, 512), Image.AFFINE, (1,0,0,0,1,0)))
+    >>> _info(im.transform((512, 512), Image.Transform.AFFINE, (1,0,0,0,1,0)))
     (None, 'RGB', (512, 512))
-    >>> _info(im.transform((512, 512), Image.EXTENT, (32,32,96,96)))
+    >>> _info(im.transform((512, 512), Image.Transform.EXTENT, (32,32,96,96)))
     (None, 'RGB', (512, 512))
 
     The ImageDraw module lets you draw stuff in raster images:
@@ -153,9 +143,7 @@ def testimage():
     ('F', (128, 128))
 
     PIL can do many other things, but I'll leave that for another
-    day.  If you're curious, check the handbook, available from:
-
-        http://www.pythonware.com
+    day.
 
     Cheers /F
     """
@@ -166,34 +154,11 @@ if __name__ == "__main__":
 
     exit_status = 0
 
-    print("-"*68)
-    print("Pillow", Image.PILLOW_VERSION, "TEST SUMMARY ")
-    print("-"*68)
-    print("Python modules loaded from", os.path.dirname(Image.__file__))
-    print("Binary modules loaded from", os.path.dirname(Image.core.__file__))
-    print("-"*68)
-    for name, feature in [
-        ("pil", "PIL CORE"),
-        ("tkinter", "TKINTER"),
-        ("freetype2", "FREETYPE2"),
-        ("littlecms2", "LITTLECMS2"),
-        ("webp", "WEBP"),
-        ("transp_webp", "Transparent WEBP"),
-        ("webp_mux", "WEBPMUX"),
-        ("jpg", "JPEG"),
-        ("jpg_2000", "OPENJPEG (JPEG2000)"),
-        ("zlib", "ZLIB (PNG/ZIP)"),
-        ("libtiff", "LIBTIFF"),
-        ("raqm", "RAQM (Bidirectional Text)")
-    ]:
-        if features.check(name):
-            print("---", feature, "support ok")
-        else:
-            print("***", feature, "support not installed")
-    print("-"*68)
+    features.pilinfo(sys.stdout, False)
 
     # use doctest to make sure the test program behaves as documented!
     import doctest
+
     print("Running selftest:")
     status = doctest.testmod(sys.modules[__name__])
     if status[0]:

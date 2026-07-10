@@ -18,7 +18,6 @@ in the :py:mod:`~PIL.Image` module::
 If successful, this function returns an :py:class:`~PIL.Image.Image` object.
 You can now use instance attributes to examine the file contents::
 
-    >>> from __future__ import print_function
     >>> print(im.format, im.size, im.mode)
     PPM (512, 512) RGB
 
@@ -30,7 +29,7 @@ bands in the image, and also the pixel type and depth. Common modes are “L”
 (luminance) for greyscale images, “RGB” for true color images, and “CMYK” for
 pre-press images.
 
-If the file cannot be opened, an :py:exc:`IOError` exception is raised.
+If the file cannot be opened, an :py:exc:`OSError` exception is raised.
 
 Once you have an instance of the :py:class:`~PIL.Image.Image` class, you can use
 the methods defined by this class to process and manipulate the image. For
@@ -41,10 +40,10 @@ example, let’s display the image we just loaded::
 .. note::
 
     The standard version of :py:meth:`~PIL.Image.Image.show` is not very
-    efficient, since it saves the image to a temporary file and calls the
-    :command:`xv` utility to display the image. If you don’t have :command:`xv`
-    installed, it won’t even work. When it does work though, it is very handy
-    for debugging and tests.
+    efficient, since it saves the image to a temporary file and calls a utility
+    to display the image. If you don’t have an appropriate utility installed,
+    it won’t even work. When it does work though, it is very handy for
+    debugging and tests.
 
 The following sections provide an overview of the different functions provided in this library.
 
@@ -67,7 +66,6 @@ Convert files to JPEG
 
 ::
 
-    from __future__ import print_function
     import os, sys
     from PIL import Image
 
@@ -76,8 +74,9 @@ Convert files to JPEG
         outfile = f + ".jpg"
         if infile != outfile:
             try:
-                Image.open(infile).save(outfile)
-            except IOError:
+                with Image.open(infile) as im:
+                    im.save(outfile)
+            except OSError:
                 print("cannot convert", infile)
 
 A second argument can be supplied to the :py:meth:`~PIL.Image.Image.save`
@@ -89,7 +88,6 @@ Create JPEG thumbnails
 
 ::
 
-    from __future__ import print_function
     import os, sys
     from PIL import Image
 
@@ -99,10 +97,10 @@ Create JPEG thumbnails
         outfile = os.path.splitext(infile)[0] + ".thumbnail"
         if infile != outfile:
             try:
-                im = Image.open(infile)
-                im.thumbnail(size)
-                im.save(outfile, "JPEG")
-            except IOError:
+                with Image.open(infile) as im:
+                    im.thumbnail(size)
+                    im.save(outfile, "JPEG")
+            except OSError:
                 print("cannot create thumbnail for", infile)
 
 It is important to note that the library doesn’t decode or load the raster data
@@ -120,15 +118,14 @@ Identify Image Files
 
 ::
 
-    from __future__ import print_function
     import sys
     from PIL import Image
 
     for infile in sys.argv[1:]:
         try:
             with Image.open(infile) as im:
-                print(infile, im.format, "%dx%d" % im.size, im.mode)
-        except IOError:
+                print(infile, im.format, f"{im.size}x{im.mode}")
+        except OSError:
             pass
 
 Cutting, pasting, and merging images
@@ -158,7 +155,7 @@ Processing a subrectangle, and pasting it back
 
 ::
 
-    region = region.transpose(Image.ROTATE_180)
+    region = region.transpose(Image.Transpose.ROTATE_180)
     im.paste(region, box)
 
 When pasting regions back, the size of the region must match the given region
@@ -175,28 +172,19 @@ Rolling an image
 ::
 
     def roll(image, delta):
-        "Roll an image sideways"
-
+        """Roll an image sideways."""
         xsize, ysize = image.size
 
         delta = delta % xsize
-        if delta == 0: return image
+        if delta == 0:
+            return image
 
         part1 = image.crop((0, 0, delta, ysize))
         part2 = image.crop((delta, 0, xsize, ysize))
-        part1.load()
-        part2.load()
-        image.paste(part2, (0, 0, xsize-delta, ysize))
-        image.paste(part1, (xsize-delta, 0, xsize, ysize))
+        image.paste(part1, (xsize - delta, 0, xsize, ysize))
+        image.paste(part2, (0, 0, xsize - delta, ysize))
 
         return image
-
-Note that when pasting it back from the :py:meth:`~PIL.Image.Image.crop`
-operation, :py:meth:`~PIL.Image.Image.load` is called first. This is because
-cropping is a lazy operation. If :py:meth:`~PIL.Image.Image.load` was not
-called, then the crop operation would not be performed until the images were
-used in the paste commands. This would mean that ``part1`` would be cropped from
-the version of ``image`` already modified by the first paste.
 
 For more advanced tricks, the paste method can also take a transparency mask as
 an optional argument. In this mask, the value 255 indicates that the pasted
@@ -250,14 +238,14 @@ Transposing an image
 
 ::
 
-    out = im.transpose(Image.FLIP_LEFT_RIGHT)
-    out = im.transpose(Image.FLIP_TOP_BOTTOM)
-    out = im.transpose(Image.ROTATE_90)
-    out = im.transpose(Image.ROTATE_180)
-    out = im.transpose(Image.ROTATE_270)
+    out = im.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+    out = im.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+    out = im.transpose(Image.Transpose.ROTATE_90)
+    out = im.transpose(Image.Transpose.ROTATE_180)
+    out = im.transpose(Image.Transpose.ROTATE_270)
 
 ``transpose(ROTATE)`` operations can also be performed identically with
-:py:meth:`~PIL.Image.Image.rotate` operations, provided the `expand` flag is
+:py:meth:`~PIL.Image.Image.rotate` operations, provided the ``expand`` flag is
 true, to provide for the same changes to the image's size.
 
 A more general form of image transformations can be carried out via the
@@ -277,7 +265,9 @@ Converting between modes
 ::
 
     from PIL import Image
-    im = Image.open("hopper.ppm").convert("L")
+
+    with Image.open("hopper.ppm") as im:
+        im = im.convert("L")
 
 The library supports transformations between each supported mode and the “L”
 and “RGB” modes. To convert between other modes, you may have to use an
@@ -393,22 +383,18 @@ Reading sequences
 
     from PIL import Image
 
-    im = Image.open("animation.gif")
-    im.seek(1) # skip to the second frame
+    with Image.open("animation.gif") as im:
+        im.seek(1)  # skip to the second frame
 
-    try:
-        while 1:
-            im.seek(im.tell()+1)
-            # do something to im
-    except EOFError:
-        pass # end of sequence
+        try:
+            while 1:
+                im.seek(im.tell() + 1)
+                # do something to im
+        except EOFError:
+            pass  # end of sequence
 
 As seen in this example, you’ll get an :py:exc:`EOFError` exception when the
 sequence ends.
-
-Note that most drivers in the current version of the library only allow you to
-seek to the next frame (as in the above example). To rewind the file, you may
-have to reopen it.
 
 The following class lets you use the for-statement to loop over the sequence:
 
@@ -422,13 +408,13 @@ Using the ImageSequence Iterator class
         # ...do something to frame...
 
 
-Postscript printing
+PostScript printing
 -------------------
 
 The Python Imaging Library includes functions to print images, text and
-graphics on Postscript printers. Here’s a simple example:
+graphics on PostScript printers. Here’s a simple example:
 
-Drawing Postscript
+Drawing PostScript
 ^^^^^^^^^^^^^^^^^^
 
 ::
@@ -436,39 +422,41 @@ Drawing Postscript
     from PIL import Image
     from PIL import PSDraw
 
-    im = Image.open("hopper.ppm")
-    title = "hopper"
-    box = (1*72, 2*72, 7*72, 10*72) # in points
+    with Image.open("hopper.ppm") as im:
+        title = "hopper"
+        box = (1 * 72, 2 * 72, 7 * 72, 10 * 72)  # in points
 
-    ps = PSDraw.PSDraw() # default is sys.stdout
-    ps.begin_document(title)
+        ps = PSDraw.PSDraw()  # default is sys.stdout or sys.stdout.buffer
+        ps.begin_document(title)
 
-    # draw the image (75 dpi)
-    ps.image(box, im, 75)
-    ps.rectangle(box)
+        # draw the image (75 dpi)
+        ps.image(box, im, 75)
+        ps.rectangle(box)
 
-    # draw title
-    ps.setfont("HelveticaNarrow-Bold", 36)
-    ps.text((3*72, 4*72), title)
+        # draw title
+        ps.setfont("HelveticaNarrow-Bold", 36)
+        ps.text((3 * 72, 4 * 72), title)
 
-    ps.end_document()
+        ps.end_document()
 
 More on reading images
 ----------------------
 
 As described earlier, the :py:func:`~PIL.Image.open` function of the
 :py:mod:`~PIL.Image` module is used to open an image file. In most cases, you
-simply pass it the filename as an argument::
+simply pass it the filename as an argument. ``Image.open()`` can be used as a
+context manager::
 
     from PIL import Image
-    im = Image.open("hopper.ppm")
+    with Image.open("hopper.ppm") as im:
+        ...
 
 If everything goes well, the result is an :py:class:`PIL.Image.Image` object.
-Otherwise, an :exc:`IOError` exception is raised.
+Otherwise, an :exc:`OSError` exception is raised.
 
 You can use a file-like object instead of the filename. The object must
-implement :py:meth:`~file.read`, :py:meth:`~file.seek` and
-:py:meth:`~file.tell` methods, and be opened in binary mode.
+implement ``file.read``, ``file.seek`` and ``file.tell`` methods,
+and be opened in binary mode.
 
 Reading from an open file
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -476,20 +464,22 @@ Reading from an open file
 ::
 
     from PIL import Image
+
     with open("hopper.ppm", "rb") as fp:
         im = Image.open(fp)
 
-To read an image from string data, use the :py:class:`~StringIO.StringIO`
+To read an image from binary data, use the :py:class:`~io.BytesIO`
 class:
 
-Reading from a string
-^^^^^^^^^^^^^^^^^^^^^
+Reading from binary data
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 ::
 
-    import StringIO
+    from PIL import Image
+    import io
 
-    im = Image.open(StringIO.StringIO(buffer))
+    im = Image.open(io.BytesIO(buffer))
 
 Note that the library rewinds the file (using ``seek(0)``) before reading the
 image header. In addition, seek will also be used when the image data is read
@@ -506,6 +496,43 @@ Reading from a tar archive
 
     fp = TarIO.TarIO("Tests/images/hopper.tar", "hopper.jpg")
     im = Image.open(fp)
+
+
+Batch processing
+^^^^^^^^^^^^^^^^
+
+Operations can be applied to multiple image files. For example, all PNG images
+in the current directory can be saved as JPEGs at reduced quality.
+
+::
+
+    import glob
+    from PIL import Image
+
+
+    def compress_image(source_path, dest_path):
+        with Image.open(source_path) as img:
+            if img.mode != "RGB":
+                img = img.convert("RGB")
+            img.save(dest_path, "JPEG", optimize=True, quality=80)
+
+
+    paths = glob.glob("*.png")
+    for path in paths:
+        compress_image(path, path[:-4] + ".jpg")
+
+Since images can also be opened from a ``Path`` from the ``pathlib`` module,
+the example could be modified to use ``pathlib`` instead of the ``glob``
+module.
+
+::
+
+    from pathlib import Path
+
+    paths = Path(".").glob("*.png")
+    for path in paths:
+        compress_image(path, path.stem + ".jpg")
+
 
 Controlling the decoder
 -----------------------
@@ -527,12 +554,12 @@ This is only available for JPEG and MPO files.
 ::
 
     from PIL import Image
-    from __future__ import print_function
-    im = Image.open(file)
-    print("original =", im.mode, im.size)
 
-    im.draft("L", (100, 100))
-    print("draft =", im.mode, im.size)
+    with Image.open(file) as im:
+        print("original =", im.mode, im.size)
+
+        im.draft("L", (100, 100))
+        print("draft =", im.mode, im.size)
 
 This prints something like::
 

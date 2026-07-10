@@ -1,22 +1,32 @@
-from helper import unittest, PillowTestCase
+import pytest
 
-from PIL import Image, GbrImagePlugin
+from PIL import GbrImagePlugin, Image
+
+from .helper import assert_image_equal_tofile
 
 
-class TestFileGbr(PillowTestCase):
+def test_gbr_file():
+    with Image.open("Tests/images/gbr.gbr") as im:
+        assert_image_equal_tofile(im, "Tests/images/gbr.png")
 
-    def test_invalid_file(self):
-        invalid_file = "Tests/images/flower.jpg"
 
-        self.assertRaises(SyntaxError,
-                          GbrImagePlugin.GbrImageFile, invalid_file)
+def test_load():
+    with Image.open("Tests/images/gbr.gbr") as im:
+        assert im.load()[0, 0] == (0, 0, 0, 0)
 
-    def test_gbr_file(self):
-        im = Image.open('Tests/images/gbr.gbr')
+        # Test again now that it has already been loaded once
+        assert im.load()[0, 0] == (0, 0, 0, 0)
 
-        target = Image.open('Tests/images/gbr.png')
 
-        self.assert_image_equal(target, im)
+def test_multiple_load_operations():
+    with Image.open("Tests/images/gbr.gbr") as im:
+        im.load()
+        im.load()
+        assert_image_equal_tofile(im, "Tests/images/gbr.png")
 
-if __name__ == '__main__':
-    unittest.main()
+
+def test_invalid_file():
+    invalid_file = "Tests/images/flower.jpg"
+
+    with pytest.raises(SyntaxError):
+        GbrImagePlugin.GbrImageFile(invalid_file)

@@ -1,19 +1,10 @@
-from helper import unittest, PillowTestCase, hopper
-
 from PIL import Image
 
-
-class TestImageFromBytes(PillowTestCase):
-
-    def test_sanity(self):
-        im1 = hopper()
-        im2 = Image.frombytes(im1.mode, im1.size, im1.tobytes())
-
-        self.assert_image_equal(im1, im2)
-
-    def test_not_implemented(self):
-        self.assertRaises(NotImplementedError, Image.fromstring)
+from .helper import assert_image_equal, hopper
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_sanity():
+    im1 = hopper()
+    im2 = Image.frombytes(im1.mode, im1.size, im1.tobytes())
+
+    assert_image_equal(im1, im2)
