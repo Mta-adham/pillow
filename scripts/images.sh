@@ -37,7 +37,7 @@ if [[ ${#TASK_IDS[@]} -eq 0 ]]; then
     mapfile -t TASK_IDS < <(pillow_task_ids)
 fi
 if [[ ${#TASK_IDS[@]} -eq 0 ]]; then
-    echo "No tasks in ${PILLOW_ROOT}/benchmarks/" >&2
+    echo "No tasks found (check eval/*/benchmark.yaml)" >&2
     exit 1
 fi
 
