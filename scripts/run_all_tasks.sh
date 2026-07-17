@@ -9,7 +9,7 @@ pillow_export_paths
 pillow_load_env
 cd "${SCRIPT_DIR}/.."
 
-PY="${PY:-python3}"
+PY="${PY:-$(pillow_python)}"
 export GSO_WORKSPACE_ROOT="${PILLOW_ROOT}"
 export GSO_PROJECT_ROOT="${PILLOW_ROOT}/project"
 
@@ -75,7 +75,7 @@ for iid in "${TASKS[@]}"; do
         continue
     fi
 
-    if ! python3 - "${iid}" "${PILLOW_ROOT}" <<'PY'
+    if ! "$(pillow_python)" - "${iid}" "${PILLOW_ROOT}" <<'PY'
 import json, sys
 from pathlib import Path
 import yaml

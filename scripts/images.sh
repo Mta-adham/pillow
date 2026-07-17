@@ -49,7 +49,7 @@ echo "=== ${CMD} (${#TASK_IDS[@]} task(s)) ==="
 for task in "${TASK_IDS[@]}"; do
     echo ">> ${task}"
     GSO_WORKSPACE_ROOT="${PILLOW_ROOT}" \
-        python3 "${PILLOW_ROOT}/scripts/hub.py" "$ACTION" "$task" "${EXTRA[@]}"
+        "$(pillow_python)" "${PILLOW_ROOT}/scripts/hub.py" "$ACTION" "$task" "${EXTRA[@]}"
 done
 
 echo ""

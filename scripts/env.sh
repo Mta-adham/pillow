@@ -15,6 +15,16 @@ pillow_export_paths() {
     export GSO_PROJECT_ROOT="$hub/project"
 }
 
+# Prefer hub .venv so ./compile|benchmark|test work without `source .venv/bin/activate`.
+pillow_python() {
+    local hub="${PILLOW_ROOT:-$(pillow_hub_root)}"
+    if [[ -x "$hub/.venv/bin/python" ]]; then
+        echo "$hub/.venv/bin/python"
+    else
+        command -v python3
+    fi
+}
+
 pillow_workflow_py() {
     local hub="${PILLOW_ROOT:-$(pillow_hub_root)}"
     local wf="$hub/scripts/workflow.py"
@@ -38,7 +48,7 @@ pillow_load_env() {
 }
 
 pillow_list_tasks() {
-    GSO_WORKSPACE_ROOT="${PILLOW_ROOT}" python3 "${PILLOW_ROOT}/scripts/hub.py" list
+    GSO_WORKSPACE_ROOT="${PILLOW_ROOT}" "$(pillow_python)" "${PILLOW_ROOT}/scripts/hub.py" list
 }
 
 pillow_task_ids() {
@@ -49,7 +59,7 @@ pillow_workflow() {
     local wf
     wf="$(pillow_workflow_py)"
     export GSO_WORKSPACE_ROOT="${PILLOW_ROOT}"
-    PYTHONPATH="$(dirname "$wf")${PYTHONPATH:+:$PYTHONPATH}" python3 "$wf" "$@"
+    PYTHONPATH="$(dirname "$wf")${PYTHONPATH:+:$PYTHONPATH}" "$(pillow_python)" "$wf" "$@"
 }
 
 pillow_workflow_eval() {
@@ -57,7 +67,7 @@ pillow_workflow_eval() {
     local wf
     wf="$(pillow_workflow_py)"
     export GSO_WORKSPACE_ROOT="${PILLOW_ROOT}"
-    PYTHONPATH="$(dirname "$wf")" python3 -c "
+    PYTHONPATH="$(dirname "$wf")" "$(pillow_python)" -c "
 import importlib.util
 spec = importlib.util.spec_from_file_location('gso_workflow', '${wf}')
 m = importlib.util.module_from_spec(spec)
@@ -71,7 +81,7 @@ pillow_print_status() {
 }
 
 pillow_active_task_id() {
-    GSO_WORKSPACE_ROOT="${PILLOW_ROOT}" python3 -c "
+    GSO_WORKSPACE_ROOT="${PILLOW_ROOT}" "$(pillow_python)" -c "
 import os, yaml
 from pathlib import Path
 p = Path(os.environ['GSO_WORKSPACE_ROOT']) / '.gso_task_id'

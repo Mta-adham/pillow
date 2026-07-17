@@ -11,13 +11,36 @@ run the **GSO Docker harness** for that task’s pinned image. The harness does
 > **Note:** Pillow is a C-extension package. Every harness run recompiles the C
 > library twice (once for the patched tree, once for the expert commit), so a
 > single `./benchmark` takes **~10–12 min** (vs. seconds of actual test time).
-> `./test` reuses an existing report and is fast.
+> `./test` reuses an existing report only when its patch still matches `project/`
+> (otherwise re-runs Docker).
+
+### Protecting `project/`
+
+`project/` is the **evaluation workspace**: the files you optimize, and the tree
+that is diffed into the patch Docker applies. The hub **commits** that tree
+(only `project/.git/` is gitignored). Treat it as sacred.
+
+| Do | Don’t |
+|----|--------|
+| Edit only the active task’s files under `project/` | Hand-edit `eval/*/baseline/` or expect Docker to mount `project/` |
+| `./compile <one-task>` then keep working on that task | `./compile --all` / multi-task `./benchmark A B …` while you have uncommitted edits |
+| Commit or copy edits before switching tasks | Switch across tasks that use different layouts without checking `git status` |
+
+**Task switches check out `project/` to that task’s `base_commit`.** Pillow tasks
+span eras with different layouts (`PIL/…` vs `src/PIL/…`, plus C under
+`src/libImaging/`). A multi-task checkout can rewrite thousands of hub-tracked
+files and look like a huge dirty tree even when nested `project/` git is “clean.”
+
+Same-task re-runs keep uncommitted edits when HEAD already matches. Prefer one
+task at a time while optimizing; use `bash scripts/test_all_commands.sh` only for
+maintenance/CI.
 
 ## Setup
 
 ```bash
 cd repos/pillow
 python3.12 -m venv .venv && source .venv/bin/activate
+# (after setup once, ./compile|benchmark|test auto-use .venv/bin/python)
 pip install -r requirements.txt
 # or: source scripts/setup.sh
 ```
@@ -35,7 +58,7 @@ bash scripts/images.sh verify-images
 ./compile python-pillow__Pillow-63f398b   # sets .gso_task_id + syncs project/ to task base
 # edit files under project/ (see Tasks table)
 ./benchmark                               # re-diffs project/ → Docker harness → results
-./test                                    # re-diffs project/; correctness JSON (reuses report if present)
+./test                                    # re-diffs project/; correctness JSON (re-runs Docker if patch changed)
 ```
 
 After editing `project/`, run `./benchmark` directly — a second `./compile` is optional.
@@ -55,14 +78,16 @@ Uncommitted edits are preserved when `project/` is already on the task base comm
 
 | Command | What it does |
 |---------|----------------|
-| `./compile [task]` | Sync `project/` + build `patch.diff` / `predictions.jsonl` |
-| `./benchmark [task]` | Prepare + re-diff `project/` → patch → GSO perf eval → `artemis_results*.json` + `summary.txt` |
-| `./test [task]` | Prepare + re-diff `project/` → correctness → `tests_artemis_results.json` (reuses `test-*` or `benchmark-*` report if present; `--rerun` for a fresh test harness) |
-| `./reset [task]` | Restore `project/` from `baseline/` (discard edits) |
+| `./compile [task\|--all]` | Sync `project/` + build `patch.diff` / `predictions.jsonl`. **`--all` checkouts every task base into `project/`** — save edits first; can thrash `PIL/` vs `src/PIL/` |
+| `./benchmark [task\|--all]` | Prepare + re-diff `project/` → patch → GSO perf eval → `artemis_results*.json` + `summary.txt` |
+| `./test [task\|--all]` | Prepare + re-diff `project/` → correctness → `tests_artemis_results.json` (reuses a prior report **only if** its patch still matches current `project/`; otherwise re-runs Docker; `--rerun` forces a fresh run) |
+| `./reset [task]` | Restore task files in `project/` from `baseline/` (discard edits for those files) |
 
-Omit the task ID to use the active task (`.gso_task_id`).
+Omit the task ID to use the active task (`.gso_task_id`). Prefer **one task ID**
+while optimizing; reserve `--all` / full E2E scripts for smoke tests.
 
-Useful flags: `./benchmark --keep-image`, `--no-pull`, `--reuse-report`.
+Useful flags: `./benchmark --keep-image`, `--no-pull`, `--reuse-report`
+(reuses only when logged `patch.diff` still matches current `project/`).
 
 **Maintenance scripts** (`scripts/`):
 
@@ -91,7 +116,8 @@ Useful flags: `./benchmark --keep-image`, `--no-pull`, `--reuse-report`.
 | Docker `409` container name conflict | Stale harness container; re-run `./benchmark` or `docker rm -f $(docker ps -aq --filter name=gso.eval.)` |
 | `code_changes: no` after editing | Edit wasn’t under that task’s files / path layout (`PIL/` vs `src/PIL/`) |
 | Benchmark takes ~10–12 min | Expected (native rebuild); `runner.timeout_seconds` is typically 1800 |
-| Wrong task / wrong commit | `./compile <task_id>` before editing |
+| Wrong task / wrong commit | `./compile <task_id>` before editing (save edits first) |
+| Huge `git status` under `project/` after `--all` | Task switch changed Pillow layout (`PIL/` ↔ `src/PIL/`). Restore with `git checkout HEAD -- project/` then `./compile <desired-task>` if needed |
 
 ## `artemis_results.json` encodings
 
@@ -120,7 +146,7 @@ track correctness and GSO Opt@1 gates alongside wall-clock performance.
 | Expert parity | `vs_expert_parity_percent` | How close to expert speed (100 = matches expert) |
 | Correctness | `correctness_passed`, `perf_completion_rate` | A fast but broken patch scores 0 (`correctness_passed: 0`) |
 | Memory usage | `memory_measured`, `memory_mb_baseline/optimized/expert` | Some tasks are memory-bound; `memory_measured: 0` when harness has no RSS data |
-| Opt@1 (expert threshold) | `opt_base_passed`, `opt_at_1` | GSO gates: beat baseline (≥1.2× GM) and match expert (harmonic mean > 0.95×) |
+| Opt@1 (expert threshold) | `opt_base_passed`, `opt_at_1` | GSO gates: **real** `code_changes`, beat baseline (≥1.2× GM), match expert; placeholder/no-op patches score 0 even if harness timing noise looks like a win |
 
 `tests_passed` / `tests_total` count perf microbenchmarks completed when correctness
 passes. `perf_completion_rate` is their percentage (`100` = full harness run).
